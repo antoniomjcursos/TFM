@@ -1,0 +1,649 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Juego de Instrucciones – Versión Final Unificada</title>
+  <style>
+    /* Diseño general:
+       - 25% para la descripción (izquierda)
+       - 35% para el área de juego (centro)
+       - 40% para el panel de instrucciones (derecha)
+    */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+      flex-direction: row;
+    }
+    #descriptionSection {
+      flex: 0 0 25%;
+      padding: 10px;
+      background: #fefae0;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    #gameSection {
+      flex: 0 0 35%;
+      background: #f0f0f0;
+      border-right: 1px solid #ccc;
+      position: relative;
+      overflow: hidden;
+    }
+    #instructionsSection {
+      flex: 0 0 40%;
+      padding: 10px;
+      background: #e0fbfc;
+      overflow-y: auto;
+    }
+    #collectedInstructions {
+      margin-bottom: 10px;
+    }
+    .instruction-item {
+      margin: 5px 0;
+      padding: 5px;
+      background: #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      position: relative;
+    }
+    .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #ff6b6b;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+      line-height: 16px;
+    }
+    button.control-btn {
+      padding: 8px 15px;
+      font-size: 16px;
+      margin: 5px 5px 5px 0;
+      cursor: pointer;
+    }
+    .speed-inputs {
+      margin: 10px 0;
+    }
+    .speed-inputs label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    .speed-inputs input {
+      width: 80px;
+      padding: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Sección de Descripción (25%) -->
+    <div id="descriptionSection">
+      <h2>Descripción del Algoritmo</h2>
+      <p id="algorithmDescription">
+        Reto 1: Preparar el Desayuno<br>
+        Instrucciones:<br>
+        1) Lavar las frutas<br>
+        2) Pelar las frutas<br>
+        3) Cortar el pan<br>
+        4) Tostar el pan<br>
+        5) Untar mantequilla<br>
+        6) Preparar el café<br>
+        7) Hervir agua<br>
+        8) Añadir azúcar al café<br>
+        9) Servir en la mesa<br>
+        10) Disfrutar el desayuno
+      </p>
+    </div>
+    <!-- Área de Juego (35%) -->
+    <div id="gameSection">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <!-- Panel de Instrucciones (40%) -->
+    <div id="instructionsSection">
+      <h2>Instrucciones Recogidas</h2>
+      <div id="collectedInstructions"></div>
+      <div>
+        <button id="checkButton" class="control-btn">Comprobar</button>
+        <button id="pauseButton" class="control-btn">Pausar</button>
+        <button id="resetButton" class="control-btn">Reiniciar Reto</button>
+      </div>
+      <div class="speed-inputs">
+        <label>
+          Intervalo de generación (ms): 
+          <input id="genIntervalInput" type="number" value="2000" min="500">
+        </label>
+        <label>
+          Intervalo de caída (ms): 
+          <input id="fallIntervalInput" type="number" value="1000" min="250">
+        </label>
+      </div>
+      <p>Puntos: <span id="score">0</span></p>
+    </div>
+  </div>
+  
+  <script>
+    window.onload = function() {
+      /******** Variables Globales y Configuración ********/
+      const cellSize = 40; // Cada celda mide 40px
+      let gridCols = 0, gridRows = 0;
+      
+      // Retos de ejemplo
+      let challenges = [
+        {
+          description: "Reto 1: Preparar el Desayuno\nInstrucciones:\n1) Lavar las frutas\n2) Pelar las frutas\n3) Cortar el pan\n4) Tostar el pan\n5) Untar mantequilla\n6) Preparar el café\n7) Hervir agua\n8) Añadir azúcar al café\n9) Servir en la mesa\n10) Disfrutar el desayuno",
+          instructions: [
+            "Lavar las frutas", "Pelar las frutas", "Cortar el pan", "Tostar el pan", "Untar mantequilla",
+            "Preparar el café", "Hervir agua", "Añadir azúcar al café", "Servir en la mesa", "Disfrutar el desayuno"
+          ]
+        },
+		
+		{
+  description: "Reto 2: Organizar una Fiesta Sorpresa\nInstrucciones:\n1) Hacer una lista de invitados\n2) Comprar decoraciones\n3) Comprar comida\n4) Decorar el lugar\n5) Preparar bocadillos\n6) Si el cumpleañero es fan de música\n7) → Crear una lista de reproducción especial\n8) Esperar a los invitados\n9) Mientras no llega el cumpleañero\n10) → Esconderse y apagar luces\n11) → Revisar que todo esté listo\n12) Gritar '¡Sorpresa!'\n13) Disfrutar la fiesta",
+  instructions: [
+    "Hacer una lista de invitados", "Comprar decoraciones", "Comprar comida", "Decorar el lugar", "Preparar bocadillos",
+    "Si el cumpleañero es fan de música", "→ Crear una lista de reproducción especial",
+    "Esperar a los invitados", "Mientras no llega el cumpleañero",
+    "→ Esconderse y apagar luces", "→ Revisar que todo esté listo",
+    "Gritar '¡Sorpresa!'", "Disfrutar la fiesta"
+  ]
+},
+
+		
+		
+        {
+          description: "Reto 3: Preparar un Smoothie Saludable (Con condicionales y bucles)\nInstrucciones:\n1) Verificar disponibilidad de fruta\n2) Si hay banana, pelar la banana; si no, pelar la manzana\n3) Lavar la fruta\n4) Cortar la fruta en trozos\n5) Agregar la fruta a la licuadora\n6) Añadir leche\n7) Agregar hielo\n8) Licuar la mezcla (repetir hasta lograr la consistencia deseada)\n9) Servir en un vaso\n10) Disfrutar el smoothie",
+          instructions: [
+            "Verificar disponibilidad de fruta",
+            "Si hay banana, pelar la banana; si no, pelar la manzana",
+            "Lavar la fruta",
+            "Cortar la fruta en trozos",
+            "Agregar la fruta a la licuadora",
+            "Añadir leche",
+            "Agregar hielo",
+            "Licuar la mezcla (repetir hasta lograr la consistencia deseada)",
+            "Servir en un vaso",
+            "Disfrutar el smoothie"
+          ]
+        },
+		
+{
+  description: "Reto 4: Hacer un Juego en Scratch\nInstrucciones:\n1) Elegir un personaje\n2) Elegir un fondo\n3) Crear un escenario de inicio\n4) Programar controles con teclas\n5) Agregar obstáculos\n6) Si el jugador toca un obstáculo\n7) → Restar una vida\n8) Mientras el juego no termina\n9) → Mover personaje\n10) → Revisar colisiones\n11) → Sumar puntos\n12) Mostrar pantalla de victoria\n13) Compartir el juego",
+  instructions: [
+    "Elegir un personaje", "Elegir un fondo", "Crear un escenario de inicio", "Programar controles con teclas", "Agregar obstáculos",
+    "Si el jugador toca un obstáculo", "→ Restar una vida",
+    "Mientras el juego no termina", "→ Mover personaje", "→ Revisar colisiones", "→ Sumar puntos",
+    "Mostrar pantalla de victoria", "Compartir el juego"
+  ]
+},
+{
+  description: "Reto 3: Preparar una Clase Virtual\nInstrucciones:\n1) Definir el tema de la clase\n2) Crear una presentación\n3) Buscar recursos visuales\n4) Si los alumnos tienen dudas frecuentes\n5) → Preparar ejemplos claros\n6) Abrir la videollamada\n7) Mientras los estudiantes se conectan\n8) → Saludar y dar la bienvenida\n9) → Probar micrófono y cámara\n10) Presentar el tema\n11) Hacer preguntas de repaso\n12) Compartir materiales de apoyo\n13) Cerrar la clase con un resumen",
+  instructions: [
+    "Definir el tema de la clase", "Crear una presentación", "Buscar recursos visuales",
+    "Si los alumnos tienen dudas frecuentes", "→ Preparar ejemplos claros",
+    "Abrir la videollamada", "Mientras los estudiantes se conectan",
+    "→ Saludar y dar la bienvenida", "→ Probar micrófono y cámara",
+    "Presentar el tema", "Hacer preguntas de repaso", "Compartir materiales de apoyo", "Cerrar la clase con un resumen"
+  ]
+}
+
+		
+      ];
+      
+const totalToComplete = 2;
+let selectedChallenges = [];
+let currentChallengeIndex = 0;
+
+// Selecciona 2 retos únicos aleatorios
+while (selectedChallenges.length < totalToComplete) {
+  const index = Math.floor(Math.random() * challenges.length);
+  if (!selectedChallenges.includes(index)) selectedChallenges.push(index);
+}
+
+      let score = 0;
+      let collectedInstructions = [];
+      let fallingPieces = [];  // Bloques en caída
+      let frozenPieces = [];   // Bloques congelados
+      let paused = false;
+      let correctCapturedCount = 0; // Instrucciones útiles capturadas en orden
+      
+      // Grupo ampliado de distractores
+      const distractorInstructions = [
+        "Calentar la sartén", "Poner leche", "Abrir la nevera", "Lavar el plato",
+        "Limpiar la mesa", "Organizar el refrigerador", "Encender la cafetera",
+        "Preparar jugo", "Verificar horario", "Revisar mensajes", "Actualizar calendario",
+        "Apagar luz", "Ordenar utensilios", "Cerrar la ventana", "Activar reloj",
+        "Comprobar avisos", "Reiniciar sistema"
+      ];
+      
+      // Declaramos el recogedor (collector) UNA sola vez
+      let collector = { row: 0, col: 0 };
+      
+      // Referencias al DOM
+      const gameCanvas = document.getElementById("gameCanvas");
+      const ctx = gameCanvas.getContext("2d");
+      const collectedDiv = document.getElementById("collectedInstructions");
+      const scoreSpan = document.getElementById("score");
+      const checkButton = document.getElementById("checkButton");
+      const pauseButton = document.getElementById("pauseButton");
+      const resetButton = document.getElementById("resetButton");
+      const genIntervalInput = document.getElementById("genIntervalInput");
+      const fallIntervalInput = document.getElementById("fallIntervalInput");
+      
+      // Intervalos en milisegundos (ajustables)
+      let spawnInterval = parseInt(genIntervalInput.value); // 2000 ms
+      let fallInterval = parseInt(fallIntervalInput.value);   // 1000 ms
+      let penaltyInterval = 10000; // Cada 10 segundos, se descuenta 5 puntos
+      
+      // Acumuladores para el bucle unificado
+      let spawnAccumulator = 0;
+      let fallAccumulator = 0;
+      let penaltyAccumulator = 0;
+      
+      // Declaramos lastTime UNA sola vez
+      let lastTime = performance.now();
+      
+      // Función para actualizar el tamaño del canvas y calcular la rejilla
+      function updateCanvasSizes(){
+        const gameSection = document.getElementById("gameSection");
+        gameCanvas.width = gameSection.clientWidth;
+        gameCanvas.height = gameSection.clientHeight;
+        gridCols = Math.floor(gameCanvas.width / cellSize);
+        gridRows = Math.floor(gameCanvas.height / cellSize);
+        // Posicionar el recogedor en el centro
+        collector.row = Math.floor(gridRows / 2);
+        collector.col = Math.floor(gridCols / 2);
+      }
+      
+      // Función para ajustar el tamaño de la fuente para que el texto se adapte al bloque
+      function getFittingFontSize(text, maxWidth) {
+        let fontSize = 20;
+        ctx.font = fontSize + "px Arial";
+        while(ctx.measureText(text).width > maxWidth && fontSize > 5) {
+          fontSize--;
+          ctx.font = fontSize + "px Arial";
+        }
+        return fontSize;
+      }
+      
+      // Actualiza el panel de instrucciones recogidas
+      function updateCollectedDisplay(){
+        collectedDiv.innerHTML = "";
+        collectedInstructions.forEach((ins, index) => {
+          const div = document.createElement("div");
+          div.className = "instruction-item";
+          div.textContent = ins;
+          const removeBtn = document.createElement("button");
+          removeBtn.className = "remove-btn";
+          removeBtn.textContent = "✖";
+          removeBtn.onclick = () => {
+            score -= 5;
+            scoreSpan.textContent = score;
+            collectedInstructions.splice(index, 1);
+            updateCollectedDisplay();
+          };
+          div.appendChild(removeBtn);
+          div.setAttribute("draggable", "true");
+          div.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", index);
+          });
+          div.addEventListener("dragover", (e) => { e.preventDefault(); });
+          div.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
+            const toIndex = index;
+            if(fromIndex !== toIndex){
+              const moved = collectedInstructions.splice(fromIndex, 1)[0];
+              collectedInstructions.splice(toIndex, 0, moved);
+              score -= 2;
+              scoreSpan.textContent = score;
+              updateCollectedDisplay();
+            }
+          });
+          collectedDiv.appendChild(div);
+        });
+      }
+      
+      // Reinicia el reto actual: limpia bloques y reinicia el contador de instrucciones útiles
+      function resetChallenge(){
+        fallingPieces = [];
+        frozenPieces = [];
+        collectedInstructions = [];
+        correctCapturedCount = 0;
+        updateCollectedDisplay();
+      }
+      
+      // Carga el reto actual
+      function loadChallenge(index){
+        if(index >= challenges.length){
+          alert("Juego terminado. Puntuación final: " + score);
+          currentChallengeIndex = 0;
+          score = 0;
+        }
+        const challenge = challenges[selectedChallenges[currentChallengeIndex]];
+        document.getElementById("algorithmDescription").innerText = challenge.description;
+        collectedInstructions = [];
+        updateCollectedDisplay();
+        fallingPieces = [];
+        frozenPieces = [];
+        correctCapturedCount = 0;
+      }
+      
+      // Función para generar bloques en caída
+      function spawnFallingPiece(){
+        if(paused) return;
+        const challenge = challenges[selectedChallenges[currentChallengeIndex]];
+        let text = "";
+        if(correctCapturedCount < challenge.instructions.length){
+          if(Math.random() < 0.9){
+            text = challenge.instructions[correctCapturedCount];
+          } else {
+            if(Math.random() < 0.5){
+              text = challenge.instructions[Math.floor(Math.random() * challenge.instructions.length)];
+            } else {
+              text = distractorInstructions[Math.floor(Math.random() * distractorInstructions.length)];
+            }
+          }
+        } else {
+          text = distractorInstructions[Math.floor(Math.random() * distractorInstructions.length)];
+        }
+        let pieceHeight = Math.min(5, Math.max(1, Math.ceil(text.length / 3)));
+        let availableCols = [];
+        for(let c = 0; c < gridCols; c++){
+          if(!fallingPieces.some(p => p.col === c)){
+            availableCols.push(c);
+          }
+        }
+        if(availableCols.length === 0) return;
+        let col = availableCols[Math.floor(Math.random() * availableCols.length)];
+        let row = -pieceHeight;
+        fallingPieces.push({ text: text, col: col, row: row, height: pieceHeight });
+      }
+      
+      // Actualiza la posición de los bloques en caída
+      function updateFallingPieces(){
+        if(paused) return;
+        for(let i = fallingPieces.length - 1; i >= 0; i--){
+          let piece = fallingPieces[i];
+          let newRow = piece.row + 1;
+          if(newRow + piece.height > gridRows){
+            const challenge = challenges[selectedChallenges[currentChallengeIndex]];
+            if(piece.text === challenge.instructions[correctCapturedCount]){
+              score -= 1;
+              scoreSpan.textContent = score;
+            }
+            fallingPieces.splice(i, 1);
+            continue;
+          }
+          let collision = false;
+          for(let frozen of frozenPieces){
+            if(frozen.col === piece.col){
+              if(newRow + piece.height - 1 > frozen.row - 2){
+                collision = true;
+                break;
+              }
+            }
+          }
+          if(collision){
+            frozenPieces.push({ text: piece.text, col: piece.col, row: piece.row, height: piece.height });
+            fallingPieces.splice(i, 1);
+          } else {
+            piece.row = newRow;
+          }
+        }
+      }
+      
+      // Dibuja la rejilla, los bloques y el recogedor
+      function drawGame(){
+        ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+        // Rejilla
+        ctx.strokeStyle = "#ccc";
+        for(let c = 0; c <= gridCols; c++){
+          ctx.beginPath();
+          ctx.moveTo(c * cellSize, 0);
+          ctx.lineTo(c * cellSize, gridRows * cellSize);
+          ctx.stroke();
+        }
+        for(let r = 0; r <= gridRows; r++){
+          ctx.beginPath();
+          ctx.moveTo(0, r * cellSize);
+          ctx.lineTo(gridCols * cellSize, r * cellSize);
+          ctx.stroke();
+        }
+        // Bloques en caída
+        fallingPieces.forEach(piece => {
+          let x = piece.col * cellSize;
+          let y = piece.row * cellSize;
+          let w = cellSize;
+          let h = piece.height * cellSize;
+          ctx.fillStyle = "#8ecae6";
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = "#023047";
+          ctx.strokeRect(x, y, w, h);
+          ctx.save();
+          ctx.translate(x + w/2, y + h/2);
+          ctx.rotate(-Math.PI/2);
+          let availableWidth = h - 4;
+          let fontSize = getFittingFontSize(piece.text, availableWidth);
+          ctx.font = fontSize + "px Arial";
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(piece.text, 0, 0);
+          ctx.restore();
+        });
+        // Bloques congelados
+        frozenPieces.forEach(piece => {
+          let x = piece.col * cellSize;
+          let y = piece.row * cellSize;
+          let w = cellSize;
+          let h = piece.height * cellSize;
+          ctx.fillStyle = "#8ecae6";
+          ctx.fillRect(x, y, w, h);
+          ctx.strokeStyle = "#023047";
+          ctx.strokeRect(x, y, w, h);
+          ctx.save();
+          ctx.translate(x + w/2, y + h/2);
+          ctx.rotate(-Math.PI/2);
+          let availableWidth = h - 4;
+          let fontSize = getFittingFontSize(piece.text, availableWidth);
+          ctx.font = fontSize + "px Arial";
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(piece.text, 0, 0);
+          ctx.restore();
+        });
+        // Recogedor
+        let cx = collector.col * cellSize;
+        let cy = collector.row * cellSize;
+        ctx.fillStyle = "#ffb703";
+        ctx.fillRect(cx, cy, cellSize, cellSize);
+        ctx.strokeStyle = "#fb8500";
+        ctx.strokeRect(cx, cy, cellSize, cellSize);
+        // Puntuación
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Puntos: " + score, 10, 20);
+      }
+      
+      // Verificar colisiones: captura de bloques
+      function checkCollisions(){
+        const challenge = challenges[selectedChallenges[currentChallengeIndex]];
+        // Bloques en caída
+        for(let i = fallingPieces.length - 1; i >= 0; i--){
+          let piece = fallingPieces[i];
+          if(piece.col === collector.col &&
+             collector.row >= piece.row &&
+             collector.row < piece.row + piece.height) {
+            if(challenge.instructions.indexOf(piece.text) !== -1){
+              if(piece.text === challenge.instructions[correctCapturedCount]){
+                score += 10;
+                correctCapturedCount++;
+              } else {
+                score -= 5;
+              }
+            }
+            scoreSpan.textContent = score;
+            collectedInstructions.push(piece.text);
+            updateCollectedDisplay();
+            fallingPieces.splice(i, 1);
+          }
+        }
+        // Bloques congelados
+        for(let i = frozenPieces.length - 1; i >= 0; i--){
+          let piece = frozenPieces[i];
+          if(piece.col === collector.col &&
+             collector.row >= piece.row &&
+             collector.row < piece.row + piece.height) {
+            if(challenge.instructions.indexOf(piece.text) !== -1){
+              if(piece.text === challenge.instructions[correctCapturedCount]){
+                score += 10;
+                correctCapturedCount++;
+              } else {
+                score -= 5;
+              }
+            }
+            scoreSpan.textContent = score;
+            collectedInstructions.push(piece.text);
+            updateCollectedDisplay();
+            frozenPieces.splice(i, 1);
+          }
+        }
+      }
+      
+      // Bucle unificado usando delta time
+      function gameLoop(currentTime) {
+        let dt = currentTime - lastTime;
+        lastTime = currentTime;
+        
+        if (!paused) {
+          spawnAccumulator += dt;
+          fallAccumulator += dt;
+          penaltyAccumulator += dt;
+          if (spawnAccumulator >= spawnInterval) {
+            spawnFallingPiece();
+            spawnAccumulator -= spawnInterval;
+          }
+          if (fallAccumulator >= fallInterval) {
+            updateFallingPieces();
+            checkCollisions();
+            fallAccumulator -= fallInterval;
+          }
+          if (penaltyAccumulator >= penaltyInterval) {
+            score -= 5;
+            scoreSpan.textContent = score;
+            penaltyAccumulator -= penaltyInterval;
+          }
+        }
+        
+        drawGame();
+        requestAnimationFrame(gameLoop);
+      }
+      
+      // Movimiento del recogedor: teclas, clic y touch
+      document.addEventListener("keydown", (e) => {
+        if(e.key === "ArrowLeft"){
+          collector.col = Math.max(0, collector.col - 1);
+        } else if(e.key === "ArrowRight"){
+          collector.col = Math.min(gridCols - 1, collector.col + 1);
+        } else if(e.key === "ArrowUp"){
+          collector.row = Math.max(0, collector.row - 1);
+        } else if(e.key === "ArrowDown"){
+          collector.row = Math.min(gridRows - 1, collector.row + 1);
+        }
+      });
+      gameCanvas.addEventListener("click", (e) => {
+        let rect = gameCanvas.getBoundingClientRect();
+        let x = e.clientX - rect.left;
+        let y = e.clientY - rect.top;
+        collector.col = Math.floor(x / cellSize);
+        collector.row = Math.floor(y / cellSize);
+      });
+      gameCanvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        let touch = e.touches[0];
+        let rect = gameCanvas.getBoundingClientRect();
+        let x = touch.clientX - rect.left;
+        let y = touch.clientY - rect.top;
+        collector.col = Math.floor(x / cellSize);
+        collector.row = Math.floor(y / cellSize);
+      });
+      
+      // Botones de control
+      checkButton.addEventListener("click", () => {
+        const challenge = challenges[selectedChallenges[currentChallengeIndex]];
+        const correctSeq = challenge.instructions;
+        let pointsEarned = 0;
+        collectedInstructions.forEach(ins => {
+          if(correctSeq.indexOf(ins) !== -1){
+            pointsEarned += 10;
+          } else {
+            pointsEarned -= 5;
+          }
+        });
+        score += pointsEarned;
+        scoreSpan.textContent = score;
+        alert("Obtuviste " + pointsEarned + " puntos en este reto.");
+        if(JSON.stringify(collectedInstructions) === JSON.stringify(correctSeq)){
+          currentChallengeIndex++;
+          if(currentChallengeIndex < challenges.length){
+            alert("¡Reto completado! Siguiente reto.");
+            loadChallenge(currentChallengeIndex);
+          } else {
+            alert("¡Has superado los 2 retos de entrenamiento!");
+      parent.postMessage({ tipo: "retoCompletado", puntos: score }, "*");
+          }
+        } else {
+          alert("Secuencia incorrecta. Intenta nuevamente.");
+        }
+        collectedInstructions = [];
+        updateCollectedDisplay();
+      });
+      
+      pauseButton.addEventListener("click", () => {
+        paused = !paused;
+        pauseButton.textContent = paused ? "Reanudar" : "Pausar";
+      });
+      
+      resetButton.addEventListener("click", () => {
+        resetChallenge();
+      });
+      
+      // Actualizar intervalos con inputs
+      genIntervalInput.addEventListener("change", () => {
+        spawnInterval = parseInt(genIntervalInput.value);
+      });
+      fallIntervalInput.addEventListener("change", () => {
+        fallInterval = parseInt(fallIntervalInput.value);
+      });
+      
+      window.addEventListener("resize", updateCanvasSizes);
+      
+      // Inicialización
+      updateCanvasSizes();
+      loadChallenge(currentChallengeIndex);
+      lastTime = performance.now();
+      requestAnimationFrame(gameLoop);
+    };
+  
+  // ✅ Enviar puntuación al padre (reto1.html)
+  parent.postMessage({ tipo: "retoCompletado", puntos: score }, "*");
+</script>
+</body>
+</html>

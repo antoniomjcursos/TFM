@@ -24,7 +24,7 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      background-color: rgba(0, 255, 255, 0.8);
+      background-color: rgba(0, 255, 255, 0.85);
       color: black;
       font-weight: bold;
       text-align: center;
@@ -32,6 +32,7 @@
       cursor: pointer;
       border: 2px solid white;
       transition: transform 0.3s;
+      z-index: 1;
     }
 
     .reto:hover {
@@ -49,15 +50,16 @@
       left: 20px;
       color: white;
       font-size: 20px;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.6);
       padding: 10px 20px;
       border-radius: 8px;
+      z-index: 2;
     }
 
-    .reto[data-reto="1"] { top: 40%; left: 10%; }
+    .reto[data-reto="1"] { top: 40%; left: 12%; }
     .reto[data-reto="2"] { top: 20%; left: 40%; }
-    .reto[data-reto="3"] { top: 60%; left: 35%; }
-    .reto[data-reto="4"] { top: 30%; left: 70%; }
+    .reto[data-reto="3"] { top: 60%; left: 38%; }
+    .reto[data-reto="4"] { top: 30%; left: 72%; }
     .reto[data-reto="5"] { top: 65%; left: 80%; }
   </style>
 </head>
@@ -66,7 +68,7 @@
     <div id="saludo">Cargando...</div>
 
     <!-- Localizadores de retos -->
-    <div class="reto" id="r1" data-reto="1">1</div>
+    <div class="reto bloqueado" id="r1" data-reto="1">1</div>
     <div class="reto bloqueado" id="r2" data-reto="2">2</div>
     <div class="reto bloqueado" id="r3" data-reto="3">3</div>
     <div class="reto bloqueado" id="r4" data-reto="4">4</div>
@@ -83,23 +85,36 @@
 
     document.getElementById("saludo").innerText = "¡Hola, " + usuario + "! Selecciona tu próximo reto.";
 
-    // Función para activar botones según progreso
     async function cargarProgreso() {
-      const res = await fetch(`${API_URL}?action=getProgreso&user=${usuario}`);
-      const datos = await res.json();
+      try {
+        const res = await fetch(`${API_URL}?action=getProgreso&user=${encodeURIComponent(usuario)}`);
+        const datos = await res.json();
 
-      for (let i = 1; i <= 5; i++) {
-        const reto = document.getElementById("r" + i);
-        const completado = datos["reto" + i] === true;
+        for (let i = 1; i <= 5; i++) {
+          const reto = document.getElementById("r" + i);
+          const desbloqueado = (i === 1) || datos["reto" + (i - 1)] === true;
 
-        if (i === 1 || datos["reto" + (i - 1)]) {
-          reto.classList.remove("bloqueado");
-          reto.addEventListener("click", () => {
-            window.location.href = `reto${i}.html`;
-          });
-        } else {
-          reto.classList.add("bloqueado");
+          // Clonamos el nodo para limpiar eventos anteriores
+          const nuevoReto = reto.cloneNode(true);
+          nuevoReto.innerText = i;
+          nuevoReto.id = "r" + i;
+          nuevoReto.setAttribute("data-reto", i);
+
+          if (desbloqueado) {
+            nuevoReto.classList.remove("bloqueado");
+            nuevoReto.onclick = () => {
+              window.location.href = `reto${i}.html`;
+            };
+          } else {
+            nuevoReto.classList.add("bloqueado");
+            nuevoReto.onclick = null;
+          }
+
+          reto.parentNode.replaceChild(nuevoReto, reto);
         }
+      } catch (err) {
+        alert("Error al cargar el progreso.");
+        console.error(err);
       }
     }
 
