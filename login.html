@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+</head>
+<body>
+  <h2>Iniciar sesión</h2>
+  <select id="userSelect"></select>
+  <div id="passwordArea"></div>
+  <button onclick="enviar()">Entrar</button>
+  <p id="mensaje"></p>
+  <script src="session-helper.js"></script>
+  <script>
+    const URL_API = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+
+    function cargarUsuarios() {
+      fetch(URL_API + "?action=getUsuarios")
+        .then(res => res.json())
+        .then(usuarios => {
+          const select = document.getElementById('userSelect');
+          select.innerHTML = '<option value="">Selecciona un usuario</option>';
+          usuarios.forEach(u => {
+            const icono = u.ocupado ? "🔒" : "🟢";
+            const option = document.createElement("option");
+            option.value = u.nombre;
+            option.textContent = icono + " " + u.nombre;
+            select.appendChild(option);
+          });
+        });
+    }
+
+    function enviar() {
+      const usuario = document.getElementById("userSelect").value;
+      if (!usuario) return alert("Selecciona un usuario");
+      sessionStorage.setItem("usuario", usuario);
+      location.href = "index.html";
+    }
+
+    cargarUsuarios();
+  </script>
+</body>
+</html>

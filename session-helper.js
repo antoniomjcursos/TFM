@@ -1,16 +1,16 @@
-function gestionarSesion({ 
-  idSaludo = "saludo", 
-  idContenido = "contenido", 
+function gestionarSesion({
+  idSaludo = "saludo",
+  idContenido = "contenido",
   idModal = "modalSesion",
-  urlLogin = "https://sites.google.com/view/programacion-eso/login" 
+  urlLogin = "login.html"
 } = {}) {
   const usuario = sessionStorage.getItem("usuario");
-  const saludo = document.getElementById(idSaludo);
-  const contenido = document.getElementById(idContenido);
-  const modal = document.getElementById(idModal);
+  const saludo = idSaludo ? document.getElementById(idSaludo) : null;
+  const contenido = idContenido ? document.getElementById(idContenido) : null;
+  const modal = idModal ? document.getElementById(idModal) : null;
 
   if (usuario) {
-    if (saludo) saludo.innerText = "Bienvenido, " + usuario;
+    if (saludo) saludo.textContent = "Bienvenido, " + usuario;
     if (contenido) contenido.style.display = "block";
     if (modal) modal.style.display = "none";
   } else {
@@ -19,18 +19,7 @@ function gestionarSesion({
   }
 }
 
-function cerrarSesion({ 
-  idSaludo = "saludo", 
-  idContenido = "contenido", 
-  idModal = "modalSesion",
-  urlLogin = "https://sites.google.com/view/programacion-eso/login" 
-} = {}) {
+function cerrarSesion() {
   sessionStorage.clear();
-  const saludo = document.getElementById(idSaludo);
-  const contenido = document.getElementById(idContenido);
-  const modal = document.getElementById(idModal);
-
-  if (saludo) saludo.innerText = "Sesión cerrada.";
-  if (contenido) contenido.style.display = "none";
-  if (modal) modal.style.display = "flex";
+  location.href = "login.html";
 }

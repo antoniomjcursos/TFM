@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reto 1</title>
+</head>
+<body>
+  <div id="contenido">
+    <h2 id="saludo">Cargando...</h2>
+    <p>Contenido del reto 1 aquí...</p>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+  </div>
+  <div id="modalSesion" style="display:none;">
+    <h2>No hay sesión activa</h2>
+    <a href="login.html" target="_blank">🔐 Iniciar sesión</a>
+  </div>
+  <script src="session-helper.js"></script>
+  <script>
+    gestionarSesion({
+      idSaludo: "saludo",
+      idContenido: "contenido",
+      idModal: "modalSesion",
+      urlLogin: "login.html"
+    });
+  </script>
+</body>
+</html>
