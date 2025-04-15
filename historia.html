@@ -2,45 +2,55 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Misión: Computación 1.0</title>
+  <title>Misión Computacional</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-      color: white;
-      background: url('imagenes/fondo-historia.avif') no-repeat center center fixed;
+      font-family: 'Share Tech Mono', monospace;
+      background: url('imagenes/fondo-st.png') no-repeat center center fixed;
       background-size: cover;
       display: flex;
       justify-content: center;
       align-items: center;
+      color: #00ffcc;
     }
 
     .contenedor {
-      background-color: rgba(0, 0, 0, 0.7);
-      padding: 40px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 50px;
       border-radius: 12px;
-      max-width: 700px;
+      max-width: 800px;
       text-align: center;
-      box-shadow: 0 0 20px cyan;
+      box-shadow: 0 0 30px #00ffff88;
     }
 
     h1 {
-      font-size: 32px;
+      font-size: 36px;
       margin-bottom: 20px;
+      color: #00ffff;
     }
 
     p {
       font-size: 18px;
       line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    #nombreAlumno {
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 20px;
     }
 
     .boton {
       margin-top: 30px;
       padding: 14px 28px;
       font-size: 18px;
-      background-color: cyan;
+      background-color: #00ffff;
       color: black;
       border: none;
       border-radius: 8px;
@@ -50,25 +60,36 @@
     }
 
     .boton:hover {
-      background-color: #00ffffb0;
+      background-color: #00cccc;
     }
   </style>
 </head>
 <body>
   <div class="contenedor">
-    <h1>Agente, tenemos una misión</h1>
+    <h1>Misión Computacional Iniciada</h1>
+    <p>Bienvenido, <span id="nombreAlumno">agente</span>.</p>
     <p>
-      La red educativa ha sido invadida por un virus digital que bloquea el acceso al conocimiento.
-      Solo los agentes con habilidades en Computación y Robótica podrán restaurar el sistema.
+      Año 2074. Las ciudades inteligentes dependen de jóvenes programadores capaces de controlar y mejorar
+      los sistemas robóticos que mantienen el equilibrio del planeta.
     </p>
     <p>
-      Para completar esta misión secreta, deberás superar cinco retos. Cada reto es un nivel de acceso.
-      Cuanto más avances, más cerca estarás de restaurar el equilibrio del mundo digital.
+      Como estudiante de Computación y Robótica, tu misión es preparar y controlar una unidad autónoma de rescate.
+      Para ello, deberás superar cinco desafíos tecnológicos que pondrán a prueba tu lógica, tu precisión y tu creatividad.
     </p>
     <p>
-      Tu nombre ya está registrado en el sistema. ¿Estás preparado para comenzar?
+      Cada reto completado te acercará más a dominar la programación y a convertirte en el líder que esta generación necesita.
     </p>
-    <a class="boton" href="mapa-retos.html">✅ Aceptar misión</a>
+    <p>Prepárate para programar, pensar... y salvar el futuro.</p>
+    <a class="boton" href="mapa-retos.html">🚀 Comenzar misión</a>
   </div>
+
+  <script>
+    const alumno = sessionStorage.getItem("usuario");
+    if (alumno) {
+      document.getElementById("nombreAlumno").innerText = alumno;
+    } else {
+      window.location.href = "login.html"; // redirigir si no hay sesión
+    }
+  </script>
 </body>
 </html>
