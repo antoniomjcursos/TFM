@@ -62,12 +62,12 @@
     .reto[data-reto="4"] { top: 30%; left: 72%; }
     .reto[data-reto="5"] { top: 65%; left: 80%; }
   
-        .superado {
-          background-color: rgba(0, 255, 0, 0.85);
-          cursor: default;
-        }
-        </style>
-        
+    .superado {
+      background-color: rgba(0, 255, 0, 0.85);
+      cursor: default;
+    }
+    </style>
+    
 </head>
 <body>
   <div id="contenedor">
@@ -112,22 +112,16 @@
     nuevoReto.onclick = null;
   } else if (anteriorCompletado) {
     nuevoReto.classList.remove("bloqueado");
-    nuevoReto.classList.remove("superado");
     nuevoReto.onclick = () => {
       window.location.href = `reto${i}.html`;
     };
-    // solo este reto debe ser jugable
+    break;
   } else {
     nuevoReto.classList.add("bloqueado");
     nuevoReto.onclick = null;
   }
 
   reto.parentNode.replaceChild(nuevoReto, reto);
-
-  // detener el bucle después de desbloquear el primero disponible
-  if (!completado && anteriorCompletado) {
-    break;
-  }
 }
       } catch (err) {
         alert("Error al cargar el progreso.");
