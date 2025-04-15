@@ -21,7 +21,7 @@
     }
 
     .contenedor {
-      background-color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 0.92);
       padding: 40px;
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(0,0,0,0.3);
@@ -106,15 +106,19 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
 
     async function cargarUsuarios() {
-      const res = await fetch(API_URL + "?action=getUsuarios");
-      const usuarios = await res.json();
-      const select = document.getElementById("userSelect");
-      usuarios.forEach(u => {
-        const option = document.createElement("option");
-        option.value = u.nombre;
-        option.textContent = (u.ocupado ? "🔒" : "🟢") + " " + u.nombre;
-        select.appendChild(option);
-      });
+      try {
+        const res = await fetch(API_URL + "?action=getUsuarios");
+        const usuarios = await res.json();
+        const select = document.getElementById("userSelect");
+        usuarios.forEach(u => {
+          const option = document.createElement("option");
+          option.value = u.nombre;
+          option.textContent = (u.ocupado ? "🔒" : "🟢") + " " + u.nombre;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error al cargar usuarios:", err);
+      }
     }
 
     async function mostrarFormulario() {
@@ -122,25 +126,33 @@
       const form = document.getElementById("formulario");
       const mensaje = document.getElementById("mensaje");
       const boton = document.getElementById("botonReto");
+
       mensaje.textContent = "";
       boton.style.display = "none";
+      form.innerHTML = "";
 
-      if (!user) return form.innerHTML = "";
+      if (!user) return;
 
-      const res = await fetch(API_URL + "?action=hasPassword&user=" + user);
-      const datos = await res.json();
+      try {
+        const res = await fetch(API_URL + "?action=hasPassword&user=" + encodeURIComponent(user));
+        const datos = await res.json();
 
-      if (datos.tiene) {
-        form.innerHTML = `
-          <input type="password" id="pass" placeholder="Contraseña"><br>
-          <button onclick="verificar()">Verificar</button>
-        `;
-      } else {
-        form.innerHTML = `
-          <input type="password" id="pass1" placeholder="Nueva contraseña"><br>
-          <input type="password" id="pass2" placeholder="Confirmar contraseña"><br>
-          <button onclick="crear()">Crear contraseña</button>
-        `;
+        if (datos && datos.tiene === true) {
+          form.innerHTML = `
+            <input type="password" id="pass" placeholder="Contraseña"><br>
+            <button onclick="verificar()">Verificar</button>
+          `;
+        } else {
+          form.innerHTML = `
+            <input type="password" id="pass1" placeholder="Nueva contraseña"><br>
+            <input type="password" id="pass2" placeholder="Confirmar contraseña"><br>
+            <button onclick="crear()">Crear contraseña</button>
+          `;
+        }
+      } catch (err) {
+        mensaje.textContent = "❌ Error al consultar el usuario.";
+        mensaje.className = "error";
+        console.error("Error en mostrarFormulario:", err);
       }
     }
 
@@ -150,18 +162,24 @@
       const mensaje = document.getElementById("mensaje");
       const boton = document.getElementById("botonReto");
 
-      const res = await fetch(`${API_URL}?action=checkPassword&user=${user}&pass=${pass}`);
-      const datos = await res.json();
+      try {
+        const res = await fetch(`${API_URL}?action=checkPassword&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`);
+        const datos = await res.json();
 
-      if (datos.ok) {
-        sessionStorage.setItem("usuario", user);
-        mensaje.textContent = "✔️ Contraseña correcta.";
-        mensaje.className = "success";
-        boton.style.display = "block";
-      } else {
-        mensaje.textContent = "❌ Contraseña incorrecta.";
+        if (datos.ok) {
+          sessionStorage.setItem("usuario", user);
+          mensaje.textContent = "✔️ Contraseña correcta.";
+          mensaje.className = "success";
+          boton.style.display = "block";
+        } else {
+          mensaje.textContent = "❌ Contraseña incorrecta.";
+          mensaje.className = "error";
+          boton.style.display = "none";
+        }
+      } catch (err) {
+        mensaje.textContent = "❌ Error al verificar contraseña.";
         mensaje.className = "error";
-        boton.style.display = "none";
+        console.error("Error en verificar:", err);
       }
     }
 
@@ -179,18 +197,24 @@
         return;
       }
 
-      const res = await fetch(`${API_URL}?action=registerPassword&user=${user}&pass=${p1}`);
-      const datos = await res.json();
+      try {
+        const res = await fetch(`${API_URL}?action=registerPassword&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(p1)}`);
+        const datos = await res.json();
 
-      if (datos.ok) {
-        sessionStorage.setItem("usuario", user);
-        mensaje.textContent = "✔️ Contraseña registrada correctamente.";
-        mensaje.className = "success";
-        boton.style.display = "block";
-      } else {
-        mensaje.textContent = "❌ Error al guardar contraseña.";
+        if (datos.ok) {
+          sessionStorage.setItem("usuario", user);
+          mensaje.textContent = "✔️ Contraseña registrada correctamente.";
+          mensaje.className = "success";
+          boton.style.display = "block";
+        } else {
+          mensaje.textContent = "❌ Error al guardar contraseña.";
+          mensaje.className = "error";
+          boton.style.display = "none";
+        }
+      } catch (err) {
+        mensaje.textContent = "❌ Error de conexión al registrar.";
         mensaje.className = "error";
-        boton.style.display = "none";
+        console.error("Error en crear:", err);
       }
     }
 
