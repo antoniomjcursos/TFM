@@ -2,19 +2,50 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>Iniciar sesión</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
       font-family: Arial, sans-serif;
-      padding: 40px;
-      text-align: center;
     }
+
+    body {
+      background: url('imagenes/fondo-login.avif') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .contenedor {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+
     select, input {
       padding: 10px;
       margin: 10px;
+      width: 90%;
       font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
+
     button {
+      margin-top: 10px;
       padding: 10px 20px;
       font-size: 16px;
       background-color: #4CAF50;
@@ -23,21 +54,53 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .error {
-      color: red;
+
+    button:hover {
+      background-color: #45a049;
     }
-    .success {
-      color: green;
+
+    #mensaje {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success { color: green; }
+    .error { color: red; }
+
+    #botonReto {
+      display: none;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 500px) {
+      .contenedor {
+        width: 95%;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>Iniciar sesión</h2>
-  <select id="userSelect" onchange="mostrarFormulario()">
-    <option value="">Selecciona un usuario</option>
-  </select>
-  <div id="formulario"></div>
-  <p id="mensaje"></p>
+  <div class="contenedor">
+    <h2>Iniciar sesión</h2>
+
+    <select id="userSelect" onchange="mostrarFormulario()">
+      <option value="">Selecciona un usuario</option>
+    </select>
+
+    <div id="formulario"></div>
+
+    <p id="mensaje"></p>
+
+    <div id="botonReto">
+      <a href="reto1.html">
+        <button>➡️ Ir al mapa de retos</button>
+      </a>
+    </div>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
@@ -55,69 +118,79 @@
     }
 
     async function mostrarFormulario() {
-      const usuario = document.getElementById("userSelect").value;
-      if (!usuario) return document.getElementById("formulario").innerHTML = "";
-      const res = await fetch(API_URL + "?action=hasPassword&user=" + usuario);
-      const datos = await res.json();
+      const user = document.getElementById("userSelect").value;
       const form = document.getElementById("formulario");
       const mensaje = document.getElementById("mensaje");
+      const boton = document.getElementById("botonReto");
       mensaje.textContent = "";
+      boton.style.display = "none";
+
+      if (!user) return form.innerHTML = "";
+
+      const res = await fetch(API_URL + "?action=hasPassword&user=" + user);
+      const datos = await res.json();
 
       if (datos.tiene) {
         form.innerHTML = `
           <input type="password" id="pass" placeholder="Contraseña"><br>
-          <button onclick="login()">Entrar</button>
+          <button onclick="verificar()">Verificar</button>
         `;
       } else {
         form.innerHTML = `
           <input type="password" id="pass1" placeholder="Nueva contraseña"><br>
           <input type="password" id="pass2" placeholder="Confirmar contraseña"><br>
-          <button onclick="registrar()">Registrar</button>
+          <button onclick="crear()">Crear contraseña</button>
         `;
       }
     }
 
-    async function login() {
+    async function verificar() {
       const user = document.getElementById("userSelect").value;
       const pass = document.getElementById("pass").value;
-      const res = await fetch(API_URL + `?action=checkPassword&user=${user}&pass=${pass}`);
-      const datos = await res.json();
       const mensaje = document.getElementById("mensaje");
+      const boton = document.getElementById("botonReto");
+
+      const res = await fetch(`${API_URL}?action=checkPassword&user=${user}&pass=${pass}`);
+      const datos = await res.json();
 
       if (datos.ok) {
         sessionStorage.setItem("usuario", user);
-        mensaje.textContent = "Acceso correcto. Redirigiendo...";
+        mensaje.textContent = "✔️ Contraseña correcta.";
         mensaje.className = "success";
-        setTimeout(() => location.href = "reto1.html", 1500);
+        boton.style.display = "block";
       } else {
-        mensaje.textContent = "Contraseña incorrecta.";
+        mensaje.textContent = "❌ Contraseña incorrecta.";
         mensaje.className = "error";
+        boton.style.display = "none";
       }
     }
 
-    async function registrar() {
+    async function crear() {
       const user = document.getElementById("userSelect").value;
       const p1 = document.getElementById("pass1").value;
       const p2 = document.getElementById("pass2").value;
       const mensaje = document.getElementById("mensaje");
+      const boton = document.getElementById("botonReto");
 
       if (p1 !== p2 || p1.length < 4) {
-        mensaje.textContent = "Las contraseñas no coinciden o son demasiado cortas.";
+        mensaje.textContent = "❌ Las contraseñas no coinciden o son muy cortas.";
         mensaje.className = "error";
+        boton.style.display = "none";
         return;
       }
 
-      const res = await fetch(API_URL + `?action=registerPassword&user=${user}&pass=${p1}`);
+      const res = await fetch(`${API_URL}?action=registerPassword&user=${user}&pass=${p1}`);
       const datos = await res.json();
 
       if (datos.ok) {
         sessionStorage.setItem("usuario", user);
-        mensaje.textContent = "Contraseña registrada. Redirigiendo...";
+        mensaje.textContent = "✔️ Contraseña registrada correctamente.";
         mensaje.className = "success";
-        setTimeout(() => location.href = "reto1.html", 1500);
+        boton.style.display = "block";
       } else {
-        mensaje.textContent = "Error al registrar contraseña.";
+        mensaje.textContent = "❌ Error al guardar contraseña.";
         mensaje.className = "error";
+        boton.style.display = "none";
       }
     }
 
