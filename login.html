@@ -3,38 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    select, input {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+  </style>
 </head>
 <body>
   <h2>Iniciar sesión</h2>
-  <select id="userSelect"></select>
-  <div id="passwordArea"></div>
-  <button onclick="enviar()">Entrar</button>
+  <select id="userSelect" onchange="mostrarFormulario()">
+    <option value="">Selecciona un usuario</option>
+  </select>
+  <div id="formulario"></div>
   <p id="mensaje"></p>
-  <script src="session-helper.js"></script>
-  <script>
-    const URL_API = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
 
-    function cargarUsuarios() {
-      fetch(URL_API + "?action=getUsuarios")
-        .then(res => res.json())
-        .then(usuarios => {
-          const select = document.getElementById('userSelect');
-          select.innerHTML = '<option value="">Selecciona un usuario</option>';
-          usuarios.forEach(u => {
-            const icono = u.ocupado ? "🔒" : "🟢";
-            const option = document.createElement("option");
-            option.value = u.nombre;
-            option.textContent = icono + " " + u.nombre;
-            select.appendChild(option);
-          });
-        });
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+
+    async function cargarUsuarios() {
+      const res = await fetch(API_URL + "?action=getUsuarios");
+      const usuarios = await res.json();
+      const select = document.getElementById("userSelect");
+      usuarios.forEach(u => {
+        const option = document.createElement("option");
+        option.value = u.nombre;
+        option.textContent = (u.ocupado ? "🔒" : "🟢") + " " + u.nombre;
+        select.appendChild(option);
+      });
     }
 
-    function enviar() {
+    async function mostrarFormulario() {
       const usuario = document.getElementById("userSelect").value;
-      if (!usuario) return alert("Selecciona un usuario");
-      sessionStorage.setItem("usuario", usuario);
-      location.href = "index.html";
+      if (!usuario) return document.getElementById("formulario").innerHTML = "";
+      const res = await fetch(API_URL + "?action=hasPassword&user=" + usuario);
+      const datos = await res.json();
+      const form = document.getElementById("formulario");
+      const mensaje = document.getElementById("mensaje");
+      mensaje.textContent = "";
+
+      if (datos.tiene) {
+        form.innerHTML = `
+          <input type="password" id="pass" placeholder="Contraseña"><br>
+          <button onclick="login()">Entrar</button>
+        `;
+      } else {
+        form.innerHTML = `
+          <input type="password" id="pass1" placeholder="Nueva contraseña"><br>
+          <input type="password" id="pass2" placeholder="Confirmar contraseña"><br>
+          <button onclick="registrar()">Registrar</button>
+        `;
+      }
+    }
+
+    async function login() {
+      const user = document.getElementById("userSelect").value;
+      const pass = document.getElementById("pass").value;
+      const res = await fetch(API_URL + `?action=checkPassword&user=${user}&pass=${pass}`);
+      const datos = await res.json();
+      const mensaje = document.getElementById("mensaje");
+
+      if (datos.ok) {
+        sessionStorage.setItem("usuario", user);
+        mensaje.textContent = "Acceso correcto. Redirigiendo...";
+        mensaje.className = "success";
+        setTimeout(() => location.href = "reto1.html", 1500);
+      } else {
+        mensaje.textContent = "Contraseña incorrecta.";
+        mensaje.className = "error";
+      }
+    }
+
+    async function registrar() {
+      const user = document.getElementById("userSelect").value;
+      const p1 = document.getElementById("pass1").value;
+      const p2 = document.getElementById("pass2").value;
+      const mensaje = document.getElementById("mensaje");
+
+      if (p1 !== p2 || p1.length < 4) {
+        mensaje.textContent = "Las contraseñas no coinciden o son demasiado cortas.";
+        mensaje.className = "error";
+        return;
+      }
+
+      const res = await fetch(API_URL + `?action=registerPassword&user=${user}&pass=${p1}`);
+      const datos = await res.json();
+
+      if (datos.ok) {
+        sessionStorage.setItem("usuario", user);
+        mensaje.textContent = "Contraseña registrada. Redirigiendo...";
+        mensaje.className = "success";
+        setTimeout(() => location.href = "reto1.html", 1500);
+      } else {
+        mensaje.textContent = "Error al registrar contraseña.";
+        mensaje.className = "error";
+      }
     }
 
     cargarUsuarios();
