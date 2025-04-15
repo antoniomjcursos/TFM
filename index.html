@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Programación ESO – Inicio</title>
+  <title>Inicio | Programación ESO</title>
   <style>
     html, body {
       margin: 0;
@@ -13,11 +13,12 @@
     }
 
     body {
-      background: url('imagenes/fondo16-9.png') no-repeat center center fixed;
-      background-size: cover;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: url('imagenes/fondo16-9.png') no-repeat center center;
+      background-size: 100% 100%;
+      background-attachment: fixed;
     }
 
     .contenedor {
@@ -25,7 +26,7 @@
       padding: 40px;
       border-radius: 12px;
       text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
       max-width: 90%;
     }
 
@@ -51,12 +52,23 @@
     .btn-login:hover {
       background-color: #45a049;
     }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 22px;
+      }
+
+      .btn-login {
+        font-size: 16px;
+        padding: 10px 20px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="contenedor">
     <h1>Bienvenido</h1>
-    <a class="btn-login" href="https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec" target="_blank">
+    <a class="btn-login" href="login.html">
       🔐 Iniciar sesión
     </a>
   </div>
