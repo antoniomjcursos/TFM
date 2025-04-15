@@ -2,18 +2,64 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Mapa de Retos</title>
+  <title>Programación ESO – Inicio</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background-image: url('imagenes/fondo16-9.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .contenedor {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      max-width: 90%;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #333;
+    }
+
+    .btn-login {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-login:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
-  <h1>Mapa de Retos</h1>
-  <p>Bienvenido. Haz clic en un reto para comenzar:</p>
-  <ul>
-    <li><a href="reto1.html">Reto 1</a></li>
-  </ul>
-  <button onclick="cerrarSesion()">Cerrar sesión</button>
-  <script src="session-helper.js"></script>
-  <script>
-    gestionarSesion({ idSaludo: null, idContenido: null, urlLogin: 'login.html' });
-  </script>
+  <div class="contenedor">
+    <h1>Bienvenido al Mapa de Retos</h1>
+    <a class="btn-login" href="https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec" target="_blank">
+      🔐 Iniciar sesión
+    </a>
+  </div>
 </body>
 </html>
