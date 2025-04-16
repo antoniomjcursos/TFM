@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Validador de Reto - Recoger Frutas</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
+    h1, h2 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .superado { background-color: #d4edda; }
+    .no-superado { background-color: #f8d7da; }
+    button, input[type=file] {
+      margin-top: 1em;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #superarBtn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Reto: Recoger Frutas</h1>
+
+  <h2>📝 Descripción del reto:</h2>
+  <p>Crea un juego donde un personaje se mueva, recoja frutas al tocarlas y aumente su puntuación. El personaje debe empezar al pulsar la bandera verde y usar sensores de colisión para detectar la fruta.</p>
+
+  <ul>
+    
+      <li>✅ Usa “cuando se presione la bandera verde”</li>
+      <li>✅ Usa “mover 10 pasos”</li>
+      <li>✅ Usa “tocar objeto fruta” para detectar colisiones</li>
+      <li>✅ Usa una variable llamada marcador</li>
+      <li>✅ Incrementa el marcador en 1 al recoger fruta</li>
+    
+  </ul>
+
+  <p><strong>Sube tu archivo .sb3 modificado para comprobar si has superado el reto:</strong></p>
+  <input type="file" id="fileInput" accept=".sb3" />
+  <button onclick="validar()">✅ Validar Reto</button>
+
+  <div id="resultado"></div>
+  <button id="superarBtn" disabled>🎉 Reto superado</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    let archivoSB3 = null;
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      archivoSB3 = event.target.files[0];
+    });
+
+    async function validar() {
+      if (!archivoSB3) {
+        alert("Por favor, selecciona un archivo .sb3 primero.");
+        return;
+      }
+
+      const zip = await JSZip.loadAsync(archivoSB3);
+      const jsonText = await zip.file("project.json").async("string");
+
+      const respuesta = await fetch(scriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          usuario: "alumno_demo",
+          reto: "recoger_frutas",
+          json: JSON.parse(jsonText)
+        })
+      });
+
+      const data = await respuesta.json();
+      mostrarRubrica(data);
+    }
+
+    function mostrarRubrica(data) {
+      const contenedor = document.getElementById("resultado");
+      const supera = data.puntuacion_total >= 50;
+
+      let html = `<h2>📊 Rúbrica del reto:</h2>`;
+      html += `<table><tr><th>Criterio</th><th>Puntuación</th><th>Resultado</th></tr>`;
+      for (let item of data.rubrica) {
+        const clase = item.puntuacion === 10 ? 'superado' : 'no-superado';
+        html += `<tr class="${clase}"><td>${item.criterio}</td><td>${item.puntuacion}/10</td><td>${item.resultado}</td></tr>`;
+      }
+      html += `</table><p><strong>Puntuación total:</strong> ${data.puntuacion_total}/50</p>`;
+      html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
+
+      contenedor.innerHTML = html;
+      document.getElementById("superarBtn").disabled = !supera;
+    }
+  </script>
+
+</body>
+</html>
