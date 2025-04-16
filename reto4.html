@@ -3,49 +3,90 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Validador de Reto - Saltar Obstáculos</title>
+  <title>Validador de Reto - Recoger Frutas</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
-    h1, h2 { color: #333; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    .superado { background-color: #d4edda; }
-    .no-superado { background-color: #f8d7da; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2em;
+      max-width: 960px;
+      margin: auto;
+      background-image: url('imagenes/fondo-st.png');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: white;
+      text-shadow: 1px 1px 3px #000;
+    }
+    h1, h2 { color: #fff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+      background: rgba(0,0,0,0.6);
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th { background-color: #444; }
+    .superado { background-color: #28a74588; }
+    .no-superado { background-color: #dc354688; }
     button, input[type=file] {
       margin-top: 1em;
       padding: 10px;
       font-size: 16px;
+      background: #ffc107;
+      border: none;
+      border-radius: 5px;
     }
     #superarBtn:disabled {
-      background-color: #ccc;
+      background-color: #666;
       cursor: not-allowed;
+    }
+    a {
+      color: #00ffff;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎯 Reto: Saltar Obstáculos</h1>
+  <h1>🎯 Reto: Recoger Frutas</h1>
 
   <h2>📝 Descripción del reto:</h2>
-  <p>Crea un personaje que avance continuamente y tenga que saltar al pulsar una tecla para evitar obstáculos. Si choca con un obstáculo, pierde o vuelve a empezar.</p>
+  <p>Crea un juego donde un personaje se mueva, recoja frutas al tocarlas y aumente su puntuación.</p>
 
   <ul>
     
       <li>✅ Usa “cuando se presione la bandera verde”</li>
-      <li>✅ Usa “mover 10 pasos” continuamente</li>
-      <li>✅ Usa “cuando se presione tecla espacio” para saltar</li>
-      <li>✅ Usa “cambiar y” o “fijar y” para hacer el salto</li>
-      <li>✅ Usa “tocar obstáculo” para detectar colisión</li>
+      <li>✅ Usa “mover 10 pasos”</li>
+      <li>✅ Usa “tocar objeto fruta” para detectar colisiones</li>
+      <li>✅ Usa una variable llamada marcador</li>
+      <li>✅ Incrementa el marcador en 1 al recoger fruta</li>
     
   </ul>
 
-  <p><strong>Sube tu archivo .sb3 modificado para comprobar si has superado el reto:</strong></p>
+  <h2>📚 ¿Cómo se evalúa este reto?</h2>
+  <p>El reto se evalúa con una <strong>rúbrica de 5 criterios</strong>. Por cada criterio cumplido, obtendrás <strong>20 puntos</strong>.</p>
+  <ul>
+    <li>✅ 5 criterios → 100 puntos → ¡Reto superado!</li>
+    <li>🟡 3-4 criterios → 60-80 puntos → A mejorar</li>
+    <li>🔴 Menos de 3 criterios → Sigue practicando</li>
+  </ul>
+
+  <p><strong>Sube tu archivo .sb3 para comprobar si has superado el reto:</strong></p>
   <input type="file" id="fileInput" accept=".sb3" />
   <button onclick="validar()">✅ Validar Reto</button>
 
   <div id="resultado"></div>
   <button id="superarBtn" disabled>🎉 Reto superado</button>
+
+  <h2>🔧 Editores recomendados:</h2>
+  <ul>
+    <li><a href="https://scratch.mit.edu/projects/editor/" target="_blank">Editor oficial de Scratch</a></li>
+    <li><a href="https://turbowarp.org/editor" target="_blank">Editor TurboWarp (más rápido)</a></li>
+  </ul>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script>
@@ -70,7 +111,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           usuario: "alumno_demo",
-          reto: "saltar_obstaculos",
+          reto: "recoger_frutas",
           json: JSON.parse(jsonText)
         })
       });
@@ -81,15 +122,15 @@
 
     function mostrarRubrica(data) {
       const contenedor = document.getElementById("resultado");
-      const supera = data.puntuacion_total >= 50;
+      const supera = data.puntuacion_total >= 100;
 
       let html = `<h2>📊 Rúbrica del reto:</h2>`;
-      html += `<table><tr><th>Criterio</th><th>Puntuación</th><th>Resultado</th></tr>`;
+      html += `<table><tr><th>Criterio</th><th>Resultado</th></tr>`;
       for (let item of data.rubrica) {
-        const clase = item.puntuacion === 10 ? 'superado' : 'no-superado';
-        html += `<tr class="${clase}"><td>${item.criterio}</td><td>${item.puntuacion}/10</td><td>${item.resultado}</td></tr>`;
+        const clase = item.puntuacion === "✔️" ? 'superado' : 'no-superado';
+        html += `<tr class="${clase}"><td>${item.criterio}</td><td>${item.resultado}</td></tr>`;
       }
-      html += `</table><p><strong>Puntuación total:</strong> ${data.puntuacion_total}/50</p>`;
+      html += `</table><p><strong>Puntuación total:</strong> ${data.puntuacion_total}/100</p>`;
       html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
 
       contenedor.innerHTML = html;
