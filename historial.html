@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Historial de Logros</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d0d0d;
+      color: #eee;
+      text-align: center;
+      padding: 40px;
+    }
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: #1a1a1a;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #333;
+    }
+    th {
+      background: #222;
+    }
+    caption {
+      font-size: 20px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎓 Historial de Logros</h1>
+  <h2 id="saludo"></h2>
+  <table>
+    <caption>Listado de logros</caption>
+    <thead>
+      <tr><th>Motivo</th><th>Puntos</th></tr>
+    </thead>
+    <tbody id="tablaLogros"></tbody>
+    <tfoot>
+      <tr><th>Total</th><th id="totalPuntos">0</th></tr>
+    </tfoot>
+  </table>
+
+  <script>
+    const usuario = sessionStorage.getItem("usuario");
+    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+
+    document.getElementById("saludo").textContent = "Usuario: " + usuario;
+
+    fetch(`${API_URL}?action=getHistorial&user=${encodeURIComponent(usuario)}`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById("tablaLogros");
+        let total = 0;
+
+        data.forEach(logro => {
+          const fila = document.createElement("tr");
+          fila.innerHTML = `<td>${logro.motivo}</td><td>${logro.puntos}</td>`;
+          tbody.appendChild(fila);
+          total += logro.puntos;
+        });
+
+        document.getElementById("totalPuntos").textContent = total;
+      })
+      .catch(err => {
+        console.error("Error al cargar el historial:", err);
+        document.getElementById("tablaLogros").innerHTML = "<tr><td colspan='2'>Error al cargar datos</td></tr>";
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiro al Bloque - Instrucciones Dinámicas</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #info {
+      margin-top: 10px;
+    }
+    #mensaje-nivel {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 1.5em;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      z-index: 100;
+    }
+    #contenedor {
+      display: flex;
+      flex-direction: row;
+      margin-top: 20px;
+    }
+    #panel-izquierdo, #panel-derecho {
+      width: 200px;
+      margin: 0 10px;
+    }
+    #secuencia, #escenario {
+      background: #fff;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      min-height: 300px;
+    }
+    #secuencia div {
+      margin: 5px 0;
+      background: #ffe680;
+      padding: 5px;
+      border-radius: 5px;
+      text-align: center;
+    }
+    #juego {
+      width: 500px;
+      height: 600px;
+      background: white;
+      border: 2px solid #ccc;
+      position: relative;
+      overflow: hidden;
+    }
+    .bloque {
+      position: absolute;
+      padding: 10px;
+      background: yellow;
+      border: 2px solid #444;
+      border-radius: 8px;
+    }
+    #jugador {
+      width: 40px;
+      height: 60px;
+      position: absolute;
+      bottom: 0;
+    }
+    #jugador img {
+      width: 100%;
+      height: 100%;
+    }
+    .disparo {
+      width: 4px;
+      height: 20px;
+      background: black;
+      position: absolute;
+    }
+    #escenario h4 {
+      margin: 0;
+      font-size: 1em;
+    }
+    #escenario ul {
+      list-style: none;
+      padding: 0;
+      margin: 5px 0 0 0;
+    }
+    #escenario li {
+      margin-bottom: 5px;
+      background: #e0f7fa;
+      padding: 4px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    #escenario li.completado {
+      background: #c0ffc0;
+    }
+    #control-botones {
+      margin-top: 20px;
+    }
+  
+    .explosion {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle, orange, red);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: explotar 0.4s ease-out forwards;
+    }
+    @keyframes explotar {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+</style>
+</head>
+<body>
+  <div id="info">
+    Puntos: <span id="puntos">0</span> | Nivel: <span id="nivel">1</span>/2
+  </div>
+  <div id="mensaje-nivel">¡Nivel superado!</div>
+  <div id="contenedor">
+    <div id="panel-izquierdo">
+      <h3>Secuencia Objetivo</h3>
+      <div id="secuencia"></div>
+    </div>
+    <div id="juego">
+      <div id="jugador"><img src="imagenes/cohete.avif" alt="cohete"></div>
+    </div>
+    <div id="panel-derecho">
+      <h3>Escenario</h3>
+      <div id="escenario">
+        <h4>Objetivo:</h4>
+        <ul id="listaEscenario"></ul>
+      </div>
+    </div>
+  </div>
+  <div id="control-botones">
+    <button id="reanudar" style="display:none">Reanudar</button>
+    <button id="registrar" style="display:none">📋 Registrar reto</button>
+    <!--<button id="registrar">📋 Registrar reto</button>-->
+    <button id="cambiarModo">Cambiar modo de aparición</button>
+  </div>
+
+  <script>
+    const niveles = [
+        ['mover 10 pasos', 'girar a la derecha', 'decir Hola', 'esperar 1 seg', 'decir Adiós'], 
+        ['mover 10 pasos', 'girar a la derecha', 'mover 10 pasos', 'girar a la izquierda', 'decir Hola', 'esperar 1 seg', 'decir Adiós', 'girar a la izquierda', 'mover 10 pasos', 'decir Fin']];
+    const distractores = ['tocar tambor', 'mostrar variable', 'enviar mensaje', 'detener todo', 'repetir 10 veces', 'crear clon'];
+
+    let nivelActual = 0, progreso = 0, puntos = 0, disparoActivo = false, enPausa = false;
+    let instruccionesEjecutar = [];
+    let modoVertical = false;
+
+    const juego = document.getElementById("juego");
+    const jugador = document.getElementById("jugador");
+    const puntosEl = document.getElementById("puntos");
+    const nivelEl = document.getElementById("nivel");
+    const secuenciaDiv = document.getElementById("secuencia");
+    const registrarBtn = document.getElementById("registrar");
+    const reanudarBtn = document.getElementById("reanudar");
+    const mensajeNivel = document.getElementById("mensaje-nivel");
+    const listaEscenario = document.getElementById("listaEscenario");
+    const cambiarModoBtn = document.getElementById("cambiarModo");
+
+    let jugadorX = 230;
+    jugador.style.left = jugadorX + "px";
+
+    function actualizarSecuencia() {
+      secuenciaDiv.innerHTML = "";
+      listaEscenario.innerHTML = "";
+      niveles[nivelActual].forEach((bloque, i) => {
+        const div = document.createElement("div");
+        div.textContent = bloque;
+        if (i < progreso) div.style.background = "#c0ffc0";
+        secuenciaDiv.appendChild(div);
+
+        const li = document.createElement("li");
+        li.textContent = bloque;
+        if (i < progreso) li.classList.add("completado");
+        listaEscenario.appendChild(li);
+      });
+    }
+
+    function ejecutarSecuencia() {
+      enPausa = true;
+      let i = 0;
+      function paso() {
+        if (i >= instruccionesEjecutar.length) {
+          mensajeNivel.style.display = 'block';
+          reanudarBtn.style.display = 'inline-block';
+          return;
+        }
+        const li = listaEscenario.children[i];
+        li.classList.add("completado");
+        i++;
+        setTimeout(paso, 600);
+      }
+      paso();
+    }
+
+    function crearBloque(texto) {
+      if (enPausa) return;
+      const el = document.createElement("div");
+      el.className = "bloque";
+      el.textContent = texto;
+      juego.appendChild(el);
+
+      if (modoVertical) {
+        el.style.top = "-50px";
+        el.style.left = Math.random() * 460 + "px";
+        const velocidad = 2.5;
+        let dx = (Math.random() > 0.5 ? 1 : -1) * 1.2;
+        function mover() {
+          if (enPausa || !el.parentNode) return;
+          let top = parseFloat(el.style.top);
+          let left = parseFloat(el.style.left);
+          if (top > 600 || left < 0 || left > 460) return el.remove();
+          el.style.top = (top + velocidad) + "px";
+          el.style.left = (left + dx) + "px";
+          requestAnimationFrame(mover);
+        }
+        mover();
+      } else {
+        el.style.top = Math.random() * 500 + "px";
+        el.style.left = "-200px";
+        const velocidad = 2.5;
+        function mover() {
+          if (enPausa || !el.parentNode) return;
+          let left = parseFloat(el.style.left);
+          if (left > 700) return el.remove();
+          el.style.left = (left + velocidad) + "px";
+          requestAnimationFrame(mover);
+        }
+        mover();
+      }
+    }
+
+    cambiarModoBtn.addEventListener("click", () => {
+      modoVertical = !modoVertical;
+      cambiarModoBtn.textContent = modoVertical ? "Modo: Vertical" : "Modo: Horizontal";
+    });
+
+    function disparar() {
+      if (disparoActivo || enPausa) return;
+      disparoActivo = true;
+      const disparo = document.createElement("div");
+      disparo.className = "disparo";
+      disparo.style.left = (jugadorX + 18) + "px";
+      disparo.style.top = "580px";
+      juego.appendChild(disparo);
+      function moverDisparo() {
+        let top = parseFloat(disparo.style.top);
+        if (top < 0) return disparo.remove(), disparoActivo = false;
+        disparo.style.top = (top - 5) + "px";
+        document.querySelectorAll(".bloque").forEach(b => {
+          const br = b.getBoundingClientRect();
+          const dr = disparo.getBoundingClientRect();
+          if (dr.left < br.right && dr.right > br.left && dr.top < br.bottom && dr.bottom > br.top) {
+            const esperado = niveles[nivelActual][progreso];
+            if (b.textContent === esperado) {
+              puntos += modoVertical ? 10 : 15;
+              instruccionesEjecutar.push(b.textContent);
+              progreso++;
+              if (progreso === niveles[nivelActual].length) {
+                document.querySelectorAll(".bloque").forEach(b => b.remove());
+                ejecutarSecuencia();
+                nivelActual++;
+                progreso = 0;
+                instruccionesEjecutar = [];
+                if (nivelActual >= niveles.length) registrarBtn.style.display = 'inline-block';
+                else nivelEl.textContent = nivelActual + 1;
+              }
+            } else puntos -= 5;
+            //mostrarExplosion(dr.left, dr.top);
+            const bounds = juego.getBoundingClientRect();
+            mostrarExplosion(br.left - bounds.left, br.top - bounds.top);
+
+            puntosEl.textContent = puntos;
+            actualizarSecuencia();
+            b.remove();
+            disparo.remove();
+            disparoActivo = false;
+          }
+        });
+        if (disparo.parentNode) requestAnimationFrame(moverDisparo);
+      }
+      moverDisparo();
+    }
+
+    document.addEventListener("keydown", e => {
+      if (enPausa) return;
+      if (e.key === "ArrowLeft") jugadorX = Math.max(0, jugadorX - 20);
+      else if (e.key === "ArrowRight") jugadorX = Math.min(460, jugadorX + 20);
+      else if (e.key === " ") disparar();
+      jugador.style.left = jugadorX + "px";
+    });
+
+    reanudarBtn.addEventListener("click", () => {
+      enPausa = false;
+      mensajeNivel.style.display = 'none';
+      reanudarBtn.style.display = 'none';
+      actualizarSecuencia();
+    });
+
+    actualizarSecuencia();
+    setInterval(() => {
+      if (!enPausa) {
+        const secuencia = niveles[nivelActual];
+        const pool = [...secuencia];
+        while (pool.length < 6) pool.push(distractores[Math.floor(Math.random() * distractores.length)]);
+        crearBloque(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    }, 900);
+  
+    function mostrarExplosion(x, y) {
+      const e = document.createElement("div");
+      e.className = "explosion";
+      e.style.left = x + "px";
+      e.style.top = y + "px";
+      juego.appendChild(e);
+      setTimeout(() => e.remove(), 400);
+    }
+    registrarBtn.addEventListener("click", () => {
+      //window.parent.postMessage({ tipo: "registroReto", reto: "reto2", puntos: puntos }, "*");
+      window.parent.postMessage({ tipo: "retoCompletado", reto: "reto2", puntos: puntos }, "*");
+
+    });    
+</script>
+</body>
+</html>
+    

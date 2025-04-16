@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Desafío Algorítmico – Pseudocódigo</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; background: #f5f5f5; font-family: sans-serif;
+    }
+    h1 {
+      text-align: center; background-color: #222; color: white; padding: 10px; margin: 0;
+    }
+    #contenedor {
+      display: flex; flex-direction: column; align-items: center; padding: 20px;
+    }
+    #enunciado, #contadorIntentos, #puntosActuales {
+      background: #fff; padding: 10px; border-radius: 8px;
+      margin-bottom: 10px; max-width: 800px; border: 2px solid #ccc; font-size: 18px;
+    }
+    #blocklyDiv {
+      height: 500px; width: 100%; max-width: 800px;
+      border: 2px solid #ccc; border-radius: 10px;
+      background: white; margin-bottom: 20px;
+    }
+    #intentos {
+      max-width: 800px; width: 100%;
+    }
+    .intento {
+      display: flex; justify-content: center; margin-bottom: 10px;
+    }
+    .bloque {
+      padding: 6px 10px; margin: 0 5px;
+      border-radius: 6px; font-weight: bold;
+      min-width: 160px; text-align: center;
+    }
+    .verde { background: #a0e7a0; }
+    .amarillo { background: #fff59d; }
+    .gris { background: #ccc; }
+    button {
+      padding: 10px 20px; font-size: 16px; margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Desafío Algorítmico</h1>
+  <div id="contenedor">
+    <select id="selectorReto">
+      <option value="">-- Selecciona un reto --</option>
+    </select>
+    <div id="enunciado">Selecciona un reto para comenzar.</div>
+    <div id="contadorIntentos">Intento 0/6</div>
+    <div id="puntosActuales">Puntos en juego: 0</div>
+    <div id="progreso">Nivel: <span id="nivel">0</span>/2 | Puntos: <span id="puntos">0</span></div>
+    <div id="blocklyDiv"></div>
+    <button onclick="comprobarIntento()">Comprobar intento</button>
+    <button id="btnRegistrar">📋 Registrar reto</button>
+    <!--<button id="btnRegistrar" style="display:none;">📋 Registrar reto<</button>-->
+    <div id="intentos"></div>
+  </div>
+
+  <xml id="toolbox" style="display: none">
+    <block type="levantarse_cama"></block>
+    <block type="ir_cocina"></block>
+    <block type="poner_tostadora"></block>
+    <block type="preparar_cafe"></block>
+    <block type="tomar_desayuno"></block>
+    <block type="lavarse_dientes"></block>
+    <block type="salir_casa"></block>
+    <block type="vestirse"></block>
+    <block type="abrir_nevera"></block>
+    <block type="encender_ordenador"></block>
+    <block type="abrir_editor_codigo"></block>
+    <block type="escribir_codigo"></block>
+    <block type="compilar_programa"></block>
+    <block type="ejecutar_programa"></block>
+    <block type="calentar_comida"></block>
+    <block type="poner_mesa"></block>
+    <block type="comer"></block>
+    <block type="fregar_platos"></block>
+    <block type="saludar"></block>
+  </xml>
+
+  <script>
+    const retos = [
+      { nombre: "Desayuno sencillo", puntos: 100, descripcion: "Prepara un desayuno básico.", secuencia: ["levantarse_cama", "ir_cocina", "preparar_cafe", "poner_tostadora", "tomar_desayuno"] },
+      { nombre: "Salida al trabajo", puntos: 120, descripcion: "Rutina matutina antes de ir al trabajo.", secuencia: ["levantarse_cama", "vestirse", "ir_cocina", "tomar_desayuno", "lavarse_dientes", "salir_casa"] },
+      { nombre: "Comida en casa", puntos: 150, descripcion: "Preparar y recoger después de comer.", secuencia: ["calentar_comida", "poner_mesa", "comer", "fregar_platos"] },
+      { nombre: "Iniciar jornada de programación", puntos: 180, descripcion: "Abrir tu entorno y empezar a programar.", secuencia: ["encender_ordenador", "abrir_editor_codigo", "escribir_codigo", "compilar_programa", "ejecutar_programa"] },
+      { nombre: "Visita inesperada", puntos: 200, descripcion: "Saludar, preparar algo y despedir.", secuencia: ["saludar", "ir_cocina", "preparar_cafe", "poner_tostadora", "tomar_desayuno", "lavarse_dientes"] }
+    ];
+
+    Blockly.defineBlocksWithJsonArray([
+      { type: "levantarse_cama", message0: "levantarse de la cama", previousStatement: null, nextStatement: null, colour: 160 },
+      { type: "ir_cocina", message0: "ir a la cocina", previousStatement: null, nextStatement: null, colour: 160 },
+      { type: "poner_tostadora", message0: "poner la tostadora", previousStatement: null, nextStatement: null, colour: 160 },
+      { type: "preparar_cafe", message0: "preparar café", previousStatement: null, nextStatement: null, colour: 160 },
+      { type: "tomar_desayuno", message0: "tomar desayuno", previousStatement: null, nextStatement: null, colour: 160 },
+      { type: "lavarse_dientes", message0: "lavarse los dientes", previousStatement: null, nextStatement: null, colour: 120 },
+      { type: "salir_casa", message0: "salir de casa", previousStatement: null, nextStatement: null, colour: 120 },
+      { type: "vestirse", message0: "vestirse", previousStatement: null, nextStatement: null, colour: 120 },
+      { type: "abrir_nevera", message0: "abrir la nevera", previousStatement: null, nextStatement: null, colour: 120 },
+      { type: "encender_ordenador", message0: "encender ordenador", previousStatement: null, nextStatement: null, colour: 260 },
+      { type: "abrir_editor_codigo", message0: "abrir editor de código", previousStatement: null, nextStatement: null, colour: 260 },
+      { type: "escribir_codigo", message0: "escribir código", previousStatement: null, nextStatement: null, colour: 260 },
+      { type: "compilar_programa", message0: "compilar programa", previousStatement: null, nextStatement: null, colour: 260 },
+      { type: "ejecutar_programa", message0: "ejecutar programa", previousStatement: null, nextStatement: null, colour: 260 },
+      { type: "calentar_comida", message0: "calentar comida", previousStatement: null, nextStatement: null, colour: 60 },
+      { type: "poner_mesa", message0: "poner la mesa", previousStatement: null, nextStatement: null, colour: 60 },
+      { type: "comer", message0: "comer", previousStatement: null, nextStatement: null, colour: 60 },
+      { type: "fregar_platos", message0: "fregar platos", previousStatement: null, nextStatement: null, colour: 60 },
+      { type: "saludar", message0: "saludar", previousStatement: null, nextStatement: null, colour: 200 }
+    ]);
+
+    let secuenciaActual = [];
+    let intentosPorReto = {};
+    let puntosRestantesPorReto = {};
+    let puntuacionInicialPorReto = {};
+    let retosCompletados = 0;
+    let totalPuntos = 0;
+    let retosUsados = {};
+
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'), scrollbars: true
+    });
+
+    const selector = document.getElementById("selectorReto");
+    retos.forEach((r, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${r.nombre} (${r.puntos} puntos)`;
+      selector.appendChild(opt);
+    });
+
+    selector.addEventListener("change", () => {
+      const idx = selector.value;
+      if (idx === "") return;
+      const reto = retos[idx];
+      secuenciaActual = reto.secuencia;
+
+      if (!puntuacionInicialPorReto[idx]) puntuacionInicialPorReto[idx] = reto.puntos;
+      if (puntosRestantesPorReto[idx] === undefined) puntosRestantesPorReto[idx] = reto.puntos;
+      if (!intentosPorReto[idx]) intentosPorReto[idx] = 0;
+
+      document.getElementById("enunciado").innerHTML = `<strong>Reto:</strong> ${reto.descripcion}`;
+      document.getElementById("contadorIntentos").textContent = `Intento ${intentosPorReto[idx] % 6}/6`;
+      document.getElementById("puntosActuales").textContent = `Puntos en juego: ${puntosRestantesPorReto[idx]}`;
+      document.getElementById("intentos").innerHTML = "";
+      workspace.clear();
+    });
+
+    function getBloquesUsuario() {
+      const blocks = [];
+      let top = workspace.getTopBlocks()[0];
+      while (top) {
+        blocks.push(top.type);
+        top = top.getNextBlock();
+      }
+      return blocks;
+    }
+
+    function comprobarIntento() {
+      const idx = parseInt(document.getElementById("selectorReto").value);
+      if (isNaN(idx)) return alert("Selecciona un reto.");
+      const reto = retos[idx];
+
+      if (retosUsados[idx]) return alert("Este reto ya está completado.");
+
+      if (!intentosPorReto[idx]) intentosPorReto[idx] = 0;
+      if (puntosRestantesPorReto[idx] === undefined) puntosRestantesPorReto[idx] = reto.puntos;
+      if (!puntuacionInicialPorReto[idx]) puntuacionInicialPorReto[idx] = reto.puntos;
+
+      const usuario = getBloquesUsuario();
+      const fila = document.createElement("div");
+      fila.className = "intento";
+
+      for (let i = 0; i < reto.secuencia.length; i++) {
+        const div = document.createElement("div");
+        div.className = "bloque";
+        const userBlock = usuario[i];
+        if (userBlock === reto.secuencia[i]) div.classList.add("verde");
+        else if (reto.secuencia.includes(userBlock)) div.classList.add("amarillo");
+        else div.classList.add("gris");
+        div.textContent = userBlock ? userBlock.replace(/_/g, ' ') : "-";
+        fila.appendChild(div);
+      }
+
+      document.getElementById("intentos").insertBefore(fila, document.getElementById("intentos").firstChild);
+
+      const esCorrecto = usuario.join() === reto.secuencia.join();
+
+      if (esCorrecto) {
+        retosUsados[idx] = true;
+        retosCompletados++;
+        totalPuntos += puntosRestantesPorReto[idx];
+
+        document.getElementById("nivel").textContent = retosCompletados;
+        document.getElementById("puntos").textContent = totalPuntos;
+        selector.options[idx + 1].disabled = true;
+        selector.value = "";
+        secuenciaActual = [];
+        document.getElementById("enunciado").textContent = "Selecciona un reto para comenzar.";
+        document.getElementById("contadorIntentos").textContent = "Intento 0/6";
+        document.getElementById("puntosActuales").textContent = "Puntos en juego: 0";
+        document.getElementById("intentos").innerHTML = "";
+        alert("¡Correcto! Has completado este reto.");
+        if (retosCompletados >= 2) {
+          document.getElementById("btnRegistrar").style.display = "inline-block";
+        }
+      } else {
+        intentosPorReto[idx]++;
+
+        // Restar 5 puntos por intento fallido
+        puntosRestantesPorReto[idx] = Math.max(0, puntosRestantesPorReto[idx] - 5);
+
+        // Cada 6 fallos → nueva base (inicial - 20 * ciclos)
+        if (intentosPorReto[idx] % 6 === 0) {
+          let ciclos = Math.floor(intentosPorReto[idx] / 6);
+          let nuevaBase = Math.max(0, puntuacionInicialPorReto[idx] - ciclos * 20);
+          puntosRestantesPorReto[idx] = nuevaBase;
+        }
+
+        document.getElementById("contadorIntentos").textContent = `Intento ${intentosPorReto[idx] % 6}/6`;
+        document.getElementById("puntosActuales").textContent = `Puntos en juego: ${puntosRestantesPorReto[idx]}`;
+      }
+
+      workspace.clear();
+    }
+
+    const registrarBtn = document.getElementById("btnRegistrar");
+    registrarBtn.addEventListener("click", () => {
+      window.parent.postMessage({ tipo: "retoCompletado", puntos: totalPuntos }, "*");
+    }); 
+
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Reto 1 – Secuencia Crítica</title>
+  <title>Reto 2 – Tiro al Bloque</title>
   <style>
     html, body {
       margin: 0;
@@ -50,7 +50,7 @@
 </head>
 <body>
   <div id="contenedor">
-    <h1>RETO 1: SECUENCIA CRÍTICA</h1>
+    <h1>RETO 2: TIRO AL BLOQUE</h1>
     <div class="info">
       Usuario: <span id="nombreUsuario">Cargando...</span>
     </div>
@@ -62,7 +62,7 @@
     </div>
 
     <div id="juego">
-      <iframe src="tetrix2.html" id="juegoFrame" style="width: 1100px; height: 900px;"></iframe>
+      <iframe src="disparos.html" id="juegoFrame" style="width: 1100px; height: 900px;"></iframe>
     </div>
   </div>
 
@@ -83,8 +83,8 @@
         alert("¡Reto superado! Has conseguido " + puntos + " puntos.");
 
         try {
-          const motivo = "Reto 1 superado"; // con espacios
-          await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto1`);
+          const motivo = "Reto 2 superado"; // con espacios
+          await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto2`);
           //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}`);
           //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=reto1_superado`);
           await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=${encodeURIComponent(motivo)}`);
