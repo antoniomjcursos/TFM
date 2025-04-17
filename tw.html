@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Editor de Reto Scratch</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; }
+    #topbar {
+      background: #f4f4f4;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #editor {
+      width: 100%;
+      height: calc(100vh - 60px);
+      border: none;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #0080ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005ecc;
+    }
+  </style>
+</head>
+<body>
+
+<div id="topbar">
+  <span><strong>Editor de Reto Scratch</strong></span>
+  <button onclick="enviarProyecto()">✅ Validar Reto</button>
+</div>
+
+<iframe id="editor" src="turbowarp-editor/index.html"></iframe>
+
+<script>
+async function enviarProyecto() {
+  const iframe = document.getElementById("editor");
+
+  try {
+    const vm = iframe.contentWindow.vm;
+
+    if (!vm) {
+      alert("❌ No se pudo acceder al motor de Scratch (vm).");
+      return;
+    }
+
+    const proyectoJSON = vm.toJSON();
+
+    const respuesta = await fetch("https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        usuario: "alumno_demo", // puedes sustituir por login real
+        reto: "reto_frutas",
+        json: proyectoJSON
+      })
+    });
+
+    const texto = await respuesta.text();
+    alert("✅ Proyecto enviado. Respuesta del servidor:\n" + texto);
+  } catch (e) {
+    console.error(e);
+    alert("❌ Error al extraer o enviar el proyecto.");
+  }
+}
+</script>
+
+</body>
+</html>

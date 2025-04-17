@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Validador de Reto</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+      background-image: url('imagenes/fondo-st.png');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: #e0e0e0;
+      text-shadow: 1px 1px 3px #000;
+    }
+    .contenido {
+      max-width: 1200px;
+      margin: auto;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 2em;
+      box-shadow: 0 0 20px #000;
+    }
+    h1, h2 { color: #ffffff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+      background: rgba(0,0,0,0.75);
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px;
+      text-align: left;
+    }
+    th { background-color: #222; }
+    .superado { background-color: rgba(40, 167, 69, 0.5); }
+    .no-superado { background-color: rgba(220, 53, 69, 0.5); }
+    button, input[type=file] {
+      margin-top: 1em;
+      padding: 10px;
+      font-size: 16px;
+      background: #ffc107;
+      border: none;
+      border-radius: 5px;
+    }
+    #superarBtn:disabled {
+      background-color: #666;
+      cursor: not-allowed;
+    }
+    a {
+      color: #00ffff;
+      font-weight: bold;
+    }
+    #resultado {
+      margin-top: 2em;
+    }
+    #procesando {
+      background: #111;
+      padding: 1em;
+      border-radius: 5px;
+      margin-top: 1em;
+      display: none;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="contenido">
+    <h1 id="titulo">🎯 Reto</h1>
+
+    <div style="display: flex; gap: 2em; flex-wrap: wrap;">
+      <div style="flex: 1 1 350px;">
+        <h2>🧩 Instrucciones que debes cumplir:</h2>
+        <table style="width: 100%; background: rgba(0,0,0,0.5);">
+          <tr><th>Bloque</th><th>Descripción</th></tr>
+          <tbody id="instrucciones"></tbody>
+        </table>
+      </div>
+
+      <div style="flex: 1 1 300px;">
+        <h2>📝 Descripción del reto:</h2>
+        <p id="descripcion">Cargando descripción...</p>
+
+        <h2>📚 ¿Cómo se evalúa este reto?</h2>
+        <p>El reto se evalúa con una <strong>rúbrica de 10 criterios</strong>. Por cada criterio cumplido, obtendrás <strong>10 puntos</strong>.</p>
+        <ul>
+          <li>✅ 10 criterios → 100 puntos → ¡Reto superado!</li>
+          <li>🟡 6-9 criterios → 60-90 puntos → A mejorar</li>
+          <li>🔴 Menos de 6 criterios → Sigue practicando</li>
+        </ul>
+
+        <p><strong>Sube tu archivo .sb3 para comprobar si has superado el reto:</strong></p>
+        <input type="file" id="fileInput" accept=".sb3" />
+        <button onclick="validar()">✅ Validar Reto</button>
+        <div id="procesando">⏳ Procesando archivo, por favor espera...</div>
+        <div style="margin-top: 1em;">
+          <button id="superarBtn" disabled>🎉 Reto superado</button>
+        </div>
+        <h2>🔧 Editores recomendados:</h2>
+        <ul>
+          <li><a href="https://scratch.mit.edu/projects/editor/" target="_blank">Editor oficial de Scratch</a></li>
+          <li><a href="https://turbowarp.org/editor" target="_blank">Editor TurboWarp (más rápido)</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="resultado"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="code/evaluador.js"></script>
+  <script>
+    let archivoSB3 = null;
+
+    function getRetoIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("reto") || "reto_frutas";
+    }
+
+    const retoId = getRetoIdFromURL();
+
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      archivoSB3 = event.target.files[0];
+    });
+
+    window.onload = () => {
+      const datos = window.retosEvaluables[retoId];
+      document.getElementById("titulo").textContent = datos.titulo;
+      document.getElementById("descripcion").textContent = datos.instrucciones;
+
+      const instruccionesTbody = document.getElementById("instrucciones");
+      let filas = "";
+      for (let [codigo, descripcion] of datos.criterios) {
+        filas += `
+          <tr>
+            <td style="text-align:center;"><img src="imagenes/${codigo}.png" width="80"></td>
+            <td style="vertical-align: middle;">${descripcion}</td>
+          </tr>`;
+      }
+      instruccionesTbody.innerHTML = filas;
+    };
+
+    async function validar() {
+      if (!archivoSB3) {
+        alert("Por favor, selecciona un archivo .sb3 primero.");
+        return;
+      }
+
+      document.getElementById("procesando").style.display = "block";
+      const zip = await JSZip.loadAsync(archivoSB3);
+      const jsonText = await zip.file("project.json").async("string");
+      const json = JSON.parse(jsonText);
+
+      const resultado = window.evaluarReto(json, retoId);
+      mostrarRubrica(resultado);
+      document.getElementById("procesando").style.display = "none";
+    }
+
+    function mostrarRubrica(data) {
+      const contenedor = document.getElementById("resultado");
+      const supera = data.puntuacion >= 50;
+
+      let html = `<h2>📊 Rúbrica del reto:</h2>`;
+      html += `<p><strong>Puntuación total:</strong> ${data.puntuacion}/100</p>`;
+      html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
+      html += `<table><tr><th>Criterio</th><th>Resultado</th></tr>`;
+      for (let item of data.rubrica) {
+        const clase = item.resultado === "✅" ? 'superado' : 'no-superado';
+        html += `<tr class="${clase}"><td>${item.criterio}</td><td>${item.resultado}</td></tr>`;
+      }
+      html += `</table><p><strong>Puntuación total:</strong> ${data.puntuacion}/100</p>`;
+      html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
+
+      contenedor.innerHTML = html;
+      document.getElementById("superarBtn").disabled = !supera;
+    }
+  </script>
+</body>
+</html>
