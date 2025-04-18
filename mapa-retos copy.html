@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa de Retos</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100%;
+      background: url('imagenes/mapa-retos.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    #contenedor {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .reto {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(0, 255, 255, 0.85);
+      color: black;
+      font-weight: bold;
+      text-align: center;
+      line-height: 60px;
+      cursor: pointer;
+      border: 2px solid white;
+      transition: transform 0.3s;
+      z-index: 1;
+    }
+
+    .reto:hover {
+      transform: scale(1.1);
+    }
+
+    .bloqueado {
+      background-color: rgba(128, 128, 128, 0.5);
+      cursor: not-allowed;
+    }
+
+    #saludo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: 20px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px;
+      border-radius: 8px;
+      z-index: 2;
+    }
+
+    .reto[data-reto="1"] { top: 40%; left: 12%; }
+    .reto[data-reto="2"] { top: 20%; left: 40%; }
+    .reto[data-reto="3"] { top: 60%; left: 38%; }
+    .reto[data-reto="4"] { top: 30%; left: 72%; }
+    .reto[data-reto="5"] { top: 65%; left: 80%; }
+  
+        .superado {
+          background-color: rgba(0, 255, 0, 0.85);
+          cursor: default;
+        }
+        </style>
+        
+</head>
+<body>
+  <div id="contenedor">
+    <div id="saludo">Cargando...</div>
+
+    <!-- Localizadores de retos -->
+    <div class="reto bloqueado" id="r1" data-reto="1" title="Reto 1: Recoge instrucciones en orden en un juego tipo Tetris.">1</div>
+    <div class="reto bloqueado" id="r2" data-reto="2" title="Reto 2: Dispara a bloques de pseudocódigo en un juego tipo matamarcianos.">2</div>
+    <div class="reto bloqueado" id="r3" data-reto="3" title="Reto 3: Adivina el algoritmo oculto al estilo Wordle con pseudocódigo.">3</div>
+    <div class="reto bloqueado" id="r4" data-reto="4" title="Reto 4: Crea un juego en Scratch con condiciones específicas.">4</div>
+    <div class="reto bloqueado" id="r5" data-reto="5" title="Reto 5: Crea otro juego en Scratch resolviendo un reto avanzado.">5</div>
+    
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+    const usuario = sessionStorage.getItem("usuario");
+
+    if (!usuario) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById("saludo").innerText = "¡Hola, " + usuario + "! Selecciona tu próximo reto.";
+
+    async function cargarProgreso() {
+      try {
+        const res = await fetch(`${API_URL}?action=getProgreso&user=${encodeURIComponent(usuario)}`);
+        const datos = await res.json();
+
+        for (let i = 1; i <= 5; i++) {
+  const reto = document.getElementById("r" + i);
+  const completado = datos["reto" + i] === true;
+  const anteriorCompletado = i === 1 || datos["reto" + (i - 1)] === true;
+
+  const nuevoReto = reto.cloneNode(true);
+  nuevoReto.innerText = i;
+  nuevoReto.id = "r" + i;
+  nuevoReto.setAttribute("data-reto", i);
+
+  if (completado) {
+    nuevoReto.classList.remove("bloqueado");
+    nuevoReto.classList.add("superado");
+    nuevoReto.onclick = null;
+  } else if (anteriorCompletado) {
+    nuevoReto.classList.remove("bloqueado");
+    nuevoReto.classList.remove("superado");
+    nuevoReto.onclick = () => {
+      window.location.href = `reto${i}.html`;
+    };
+    // solo este reto debe ser jugable
+  } else {
+    nuevoReto.classList.add("bloqueado");
+    nuevoReto.onclick = null;
+  }
+
+  reto.parentNode.replaceChild(nuevoReto, reto);
+
+  // detener el bucle después de desbloquear el primero disponible
+  if (!completado && anteriorCompletado) {
+    break;
+  }
+}
+      } catch (err) {
+        alert("Error al cargar el progreso.");
+        console.error(err);
+      }
+    }
+
+    cargarProgreso();
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel de Progreso</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(to bottom, #1e3c72, #2a5298);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .panel {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #ffd700;
+    }
+
+    #puntos {
+      font-size: 22px;
+      color: #00ffcc;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    .insignias {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .insignia {
+      background-color: #ff69b4;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 10px;
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s;
+    }
+
+    .insignia:hover {
+      transform: scale(1.1);
+      background-color: #ff85c1;
+    }
+
+    @media (max-width: 500px) {
+      .panel {
+        padding: 20px;
+      }
+
+      .insignia {
+        font-size: 8px;
+        padding: 10px 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <h1>🎮 Tu Panel de Progreso</h1>
+    <div id="puntos">Puntos acumulados: <strong>180</strong></div>
+    <h2>🏅 Insignias desbloqueadas:</h2>
+    <div class="insignias">
+      <div class="insignia">Explorador Digital</div>
+      <div class="insignia">Reto 1 Completado</div>
+      <div class="insignia">Algoritmista Nivel 1</div>
+      <div class="insignia">¡Primer Login!</div>
+      <div class="insignia">Scratch Master</div>
+    </div>
+  </div>
+
+</body>
+</html>

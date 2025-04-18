@@ -4,255 +4,386 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Juego de Pseudocódigo</title>
+  <title>🧠 Juego de Pseudocódigo</title>
+  <!-- Fuentes y estilos mejorados -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; background: #eef2f3; margin: 0; display: flex; flex-direction: column; align-items: center; }
-    #info, #ayudaTexto { margin: 10px; font-size: 16px; }
-    #mensaje, #marcador { font-weight: bold; margin-top: 10px; }
-    #botones { margin: 10px; }
-    #contenedor { display: flex; justify-content: center; align-items: stretch; margin-top: 10px; }
-    #objetivo, #progreso {
-      width: 300px; height: 500px; background: #fff; border: 2px solid #333;
-      padding: 10px; margin: 0 10px; overflow-y: auto;
-      white-space: pre-wrap; text-align: left;
-      font-family: monospace; font-size: 14px;
+    body {
+      font-family: sans-serif;
+      background: #eef2f3;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin: 20px 0;
+    }
+    /* Panel estilo monitor para info y paneles de código */
+    .panel, #info {
+      background: #000;
+      color: #0f0;
+      font-family: 'Roboto Mono', monospace;
+      border: 2px inset #333;
+      padding: 10px;
       box-sizing: border-box;
     }
-    #canvasContainer { position: relative; display: flex; flex-direction: column; }
-    canvas {
-      width: 400px; height: 500px; border: 2px solid #333; background: #fff;
+    #info {
+      width: 320px;
+      text-align: center;
+      margin: 10px;
     }
-    #pauseOverlay {
-      position: absolute; width: 400px; height: 500px;
-      top: 0; left: 0; display: none;
-      background-color: rgba(0,0,0,0.5); color: white;
-      font-size: 24px; font-weight: bold;
-      justify-content: center; align-items: center;
-      text-align: center; z-index: 10;
+    #info span {
+      display: block;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    #botones {
+      margin: 10px;
+    }
+    #botones button {
+      font-family: 'Roboto Mono', monospace;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: none;
+      background: #ffcc29;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+
+
+/* 1) Hacer que body llene la ventana */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+
+/* 2) Info y botones ocupan su espacio natural */
+#info,
+#botones {
+  flex: none;
+}
+
+/* 3) El contenedor principal crece para llenar el resto */
+#contenedor {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;  /* obliga a que los tres hijos tengan la misma altura */
+  margin: 10px 0;
+}
+
+/* 4) Cada columna (Objetivo, Juego y Progreso) es un flex-column que escala igual */
+#contenedor > div:first-child,
+#canvasContainer,
+#contenedor > div:last-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin: 0 10px;
+  box-sizing: border-box;
+}
+
+/* 5) Normalizar los encabezados de cada panel */
+#contenedor > div > h3 {
+  flex: none;
+  margin: 0;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 16px;
+  color: #0f0;
+}
+
+/* 6) Objetivo y Progreso ocupan todo el resto y hacen scroll si hace falta */
+#objetivo,
+#progreso {
+  flex: 1;
+  background: #000;
+  color: #0f0;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  border: 2px inset #333;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 7) Contenedor de juego también escala dinámicamente */
+#canvasContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #000;
+  border: 2px inset #333;
+  box-sizing: border-box;
+}
+
+/* 8) El canvas rellena todo el espacio interior sobrante */
+#canvasContainer canvas {
+  flex: 1;
+  width: 100%;
+  border: 2px solid #333;
+  background: #fff;
+  display: block;
+}
+
+/* 9) Overlay cubre exactamente el área del canvas */
+#pauseOverlay {
+  position: absolute;
+  top: 36px;    /* justo debajo del h3 */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: none;
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 10;
+}
+
+
+/* ————————————————————————
+   Editor‐style para Objetivo y Progreso
+   ———————————————————————— */
+   #objetivo, #progreso {
+  background: #1e1e1e;
+  color: #dcdcdc;
+  font-family: 'Roboto Mono', monospace;
+}
+
+#objetivo .line, #progreso .line {
+  display: flex;
+}
+
+#objetivo .lineno, #progreso .lineno {
+  width: 2em;
+  text-align: right;
+  margin-right: 8px;
+  color: #888;
+  user-select: none;
+}
+
+
+    #ayudaTexto, #mensaje {
+      margin: 10px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      color: #333;
+      min-height: 24px;
     }
   </style>
 </head>
 <body>
   <h1>🧠 Juego de Pseudocódigo</h1>
   <div id="info">
-    Resuelve 2 algoritmos para ganar<br />
+    Resuelve 2 algoritmos para ganar<br>
     <span id="marcador">🏆 Puntos: 0 | Algoritmos completados: 0/2</span>
   </div>
   <div id="botones">
     <button id="pausaBtn">⏸ Pausar</button>
     <button id="ayudaBtn">🎓 Ayuda</button>
     <button id="registrarBtn" style="display:none;">📋 Registrar reto</button>
-    <!--<button id="registrarBtn">📋 Registrar reto</button>-->
-    
   </div>
   <div id="contenedor">
-    <div><h3>🎯 Secuencia Objetivo</h3><div id="objetivo"></div></div>
+    <div class="panel" id="objetivo-container">
+      <h3>🎯 Secuencia Objetivo</h3>
+      <div id="objetivo"></div>
+    </div>
     <div id="canvasContainer">
-      <h3 style="margin:0; padding:10px;">🕹️ Juego</h3>
+      <h3>🕹️ Juego</h3>
       <canvas id="juego" width="400" height="500"></canvas>
       <div id="pauseOverlay">🎮 Juego en pausa</div>
     </div>
-    <div><h3>✅ Tu Código</h3><div id="progreso"></div></div>
+    <div class="panel" id="progreso-container">
+      <h3>✅ Tu Código</h3>
+      <div id="progreso"></div>
+    </div>
   </div>
   <div id="ayudaTexto"></div>
   <div id="mensaje"></div>
 
-<script>
-const canvas = document.getElementById("juego");
-const ctx = canvas.getContext("2d");
-const cesta = { x: 170, y: 470, width: 60, height: 30 };
-const bloques = [];
+  <script>
+  // Lógica original sin cambios
+  const canvas = document.getElementById("juego");
+  const ctx = canvas.getContext("2d");
+  const columns = 5;
+  const blockSize = canvas.width / columns;
 
-const algoritmos = [
-  {
-    nombre: "HACER TOSTADA",
-    secuencia: ["INICIO", "SI hay pan", "  PONER pan en la tostadora", "  ESPERAR 2 minutos", "  SACAR la tostada", "  SI quieres mantequilla", "    UNTAR mantequilla", "FIN"]
-  },
-  {
-    nombre: "LAVARSE LAS MANOS",
-    secuencia: ["INICIO", "MIENTRAS estén sucias las manos", "  MOJAR manos", "  FROTAR con jabón", "  ACLARAR", "SECAR con toalla", "FIN"]
-  }
-];
+  const cesta = { x: 170, y: 470, width: 60, height: 30 };
+  const bloques = [];
 
-const divObjetivo = document.getElementById("objetivo");
-const divProgreso = document.getElementById("progreso");
-const marcador = document.getElementById("marcador");
-const mensaje = document.getElementById("mensaje");
-const ayudaTexto = document.getElementById("ayudaTexto");
-const registrarBtn = document.getElementById("registrarBtn");
-const pausaBtn = document.getElementById("pausaBtn");
-const ayudaBtn = document.getElementById("ayudaBtn");
-const pauseOverlay = document.getElementById("pauseOverlay");
+  const algoritmos = [
+    { nombre: "HACER TOSTADA", secuencia: ["INICIO","SI hay pan","  PONER pan en la tostadora","  ESPERAR 2 minutos","  SACAR la tostada","  SI quieres mantequilla","    UNTAR mantequilla","FIN"] },
+    { nombre: "LAVARSE LAS MANOS", secuencia: ["INICIO","MIENTRAS estén sucias las manos","  MOJAR manos","  FROTAR con jabón","  ACLARAR","SECAR con toalla","FIN"] }
+  ];
 
-let usados = [], algoritmoActual, secuenciaActual = [], recogidos = [], frecuencia = [];
-let completados = 0, puntos = 0;
-let pausado = false, juegoTerminado = false;
-let ayudaNivel = 0;
-let loop, spawner;
+  const divObjetivo = document.getElementById("objetivo");
+  const divProgreso = document.getElementById("progreso");
+  const marcador = document.getElementById("marcador");
+  const mensaje = document.getElementById("mensaje");
+  const ayudaTexto = document.getElementById("ayudaTexto");
+  const registrarBtn = document.getElementById("registrarBtn");
+  const pausaBtn = document.getElementById("pausaBtn");
+  const ayudaBtn = document.getElementById("ayudaBtn");
+  const pauseOverlay = document.getElementById("pauseOverlay");
 
-function elegirAlgoritmo() {
+  let usados = [], algoritmoActual, secuenciaActual = [], recogidos = [], frecuencia = [];
+  let completados = 0, puntos = 0;
+  let pausado = false, juegoTerminado = false;
+  let ayudaNivel = 0;
+  let loop, spawner;
+
+  function elegirAlgoritmo() {
+  // 1) Elige un algoritmo nuevo
   let index;
-  do { index = Math.floor(Math.random() * algoritmos.length); } while (usados.includes(index));
+  do {
+    index = Math.floor(Math.random() * algoritmos.length);
+  } while (usados.includes(index));
   usados.push(index);
+
+  // 2) Prepara la secuencia y reinicia estado
   algoritmoActual = algoritmos[index];
   secuenciaActual = algoritmoActual.secuencia;
   recogidos = [];
   frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5);
   cesta.y = 470;
-  divObjetivo.textContent = secuenciaActual.join("\n");
-  divProgreso.textContent = "";
+
+  // 3) Renderiza “Secuencia Objetivo” con numeración de línea
+  divObjetivo.innerHTML = secuenciaActual
+    .map((linea, idx) =>
+      `<div class="line"><span class="lineno">${idx + 1}</span>${linea}</div>`
+    ).join("");
+
+  // 4) Limpia el panel de progreso
+  divProgreso.innerHTML = "";
+
+  // 5) Mensaje y marcador
   mensaje.textContent = `🎓 Algoritmo: ${algoritmoActual.nombre}`;
   actualizarMarcador();
 }
 
+
 function crearBloque() {
   if (pausado || juegoTerminado) return;
+
+  // Relleno de frecuencia si hace falta
   if (frecuencia.length < 2) {
-    frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5);
+    frecuencia = [...secuenciaActual.map(l => l.trim())]
+                  .sort(() => Math.random() - 0.5);
   }
   const esperado = secuenciaActual[recogidos.length]?.trim();
-  for (let i = 0; i < 2; i++) {
+
+  // Elegimos dos columnas distintas al azar
+  const cols = [];
+  while (cols.length < 2) {
+    const c = Math.floor(Math.random() * columns);
+    if (!cols.includes(c)) cols.push(c);
+  }
+
+  // Creamos un bloque en cada columna, siempre en y = 0
+  cols.forEach(col => {
     const texto = frecuencia.shift();
     bloques.push({
       texto,
-      x: Math.floor(Math.random() * 5) * 80,
+      x: col * blockSize,
       y: 0,
       validoInicial: texto === esperado
     });
-  }
-}
-
-function actualizarMarcador() {
-  marcador.textContent = `🏆 Puntos: ${puntos} | Algoritmos completados: ${completados}/2`;
-}
-
-function dibujar() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  bloques.forEach(b => {
-    ctx.fillStyle = ayudaNivel === 2 && b.texto === secuenciaActual[recogidos.length]?.trim() ? "#FFD700" : "#4CAF50";
-    ctx.fillRect(b.x, b.y, 70, 70);
-    ctx.fillStyle = "#fff";
-    ctx.font = "12px monospace";
-    ctx.textAlign = "center";
-    wrapText(ctx, b.texto, b.x + 35, b.y + 20, 60, 14);
   });
-  ctx.fillStyle = "#f90";
-  ctx.fillRect(cesta.x, cesta.y, cesta.width, cesta.height);
 }
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
-  let line = "";
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-      ctx.fillText(line.trim(), x, y);
-      line = words[n] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
+  function actualizarMarcador() {
+    marcador.textContent = `🏆 Puntos: ${puntos} | Algoritmos completados: ${completados}/2`;
   }
-  ctx.fillText(line.trim(), x, y);
-}
 
-function actualizar() {
-  if (pausado || juegoTerminado) return;
-  bloques.forEach(b => b.y += 2);
-  for (let i = bloques.length - 1; i >= 0; i--) {
-    const b = bloques[i];
-    const esperado = secuenciaActual[recogidos.length]?.trim();
-    if (b.y + 70 >= cesta.y && b.y + 70 <= cesta.y + cesta.height && b.x + 70 > cesta.x && b.x < cesta.x + cesta.width) {
-      if (b.validoInicial && b.texto === esperado) {
-        recogidos.push(b.texto);
-        puntos += ayudaNivel === 2 ? 2 : ayudaNivel === 1 ? 5 : 10;
-        mensaje.textContent = "✅ Correcto";
-        bloques.length = 0;
-        frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5);
-      } else {
-        puntos -= 5;
-        cesta.y -= 20;
-        mensaje.textContent = "❌ Incorrecto";
+  function dibujar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    bloques.forEach(b => {
+      ctx.fillStyle = ayudaNivel === 2 && b.texto === secuenciaActual[recogidos.length]?.trim() ? "#FFD700" : "#4CAF50";
+      ctx.fillRect(b.x, b.y, 70, 70);
+      ctx.fillStyle = "#000";
+      ctx.font = "12px monospace";
+      ctx.textAlign = "center";
+      wrapText(ctx, b.texto, b.x + 35, b.y + 20, 60, 14);
+    });
+    ctx.fillStyle = "#f90";
+    ctx.fillRect(cesta.x, cesta.y, cesta.width, cesta.height);
+  }
+
+  function wrapText(ctx, text, x, y, maxW, lh) {
+    const words = text.split(" "); let line = "";
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      if (ctx.measureText(testLine).width > maxW && n > 0) { ctx.fillText(line.trim(), x, y); line = words[n] + " "; y += lh; } else { line = testLine; }
+    }
+    ctx.fillText(line.trim(), x, y);
+  }
+
+    function actualizar() {
+      if (pausado || juegoTerminado) return;
+      bloques.forEach(b => b.y += 2);
+      for (let i = bloques.length - 1; i >= 0; i--) {
+        const b = bloques[i], exp = secuenciaActual[recogidos.length]?.trim();
+        if (b.y + 70 >= cesta.y && b.y + 70 <= cesta.y + cesta.height && b.x + 70 > cesta.x && b.x < cesta.x + cesta.width) {
+          if (b.validoInicial && b.texto === exp) { recogidos.push(b.texto); puntos += ayudaNivel === 2 ? 2 : ayudaNivel === 1 ? 5 : 10; mensaje.textContent = "✅ Correcto"; bloques.length = 0; frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5); }
+          else { puntos -= 5; cesta.y -= 20; mensaje.textContent = "❌ Incorrecto"; }
+          bloques.splice(i, 1); actualizarMarcador(); mostrarProgreso();
+        } else if (b.y > canvas.height && b.validoInicial && b.texto === exp) { puntos -= 5; cesta.y -= 20; mensaje.textContent = `❌ Perdiste la instrucción esperada: "${exp}"`; bloques.splice(i, 1); actualizarMarcador(); }
       }
-      bloques.splice(i, 1);
-      actualizarMarcador();
-      mostrarProgreso();
-    } else if (b.y > canvas.height && b.validoInicial && b.texto === esperado) {
-      puntos -= 5;
-      cesta.y -= 20;
-      mensaje.textContent = `❌ Perdiste la instrucción esperada: "${esperado}"`;
-      bloques.splice(i, 1);
-      actualizarMarcador();
+      if (recogidos.length === secuenciaActual.length && !juegoTerminado && secuenciaActual.length > 0) { 
+        secuenciaActual = []; completados++; 
+        actualizarMarcador();  // ← añadimos esto para que muestre "2/2"
+        if (completados === 2) { 
+          mensaje.textContent = "🎉 ¡Reto conseguido!"; 
+          // Mostramos overlay con éxito
+          pauseOverlay.textContent = '🎉 ¡Reto conseguido!';
+          pauseOverlay.style.display = 'flex';
+
+          juegoTerminado = true; 
+          registrarBtn.style.display = "inline-block"; 
+          clearInterval(loop); 
+          clearInterval(spawner); } 
+          else setTimeout(() => elegirAlgoritmo(), 1000); }
+      if (cesta.y < 40 && !juegoTerminado) { mensaje.textContent = "💀 Has perdido. La cesta ha llegado arriba."; juegoTerminado = true; clearInterval(loop); clearInterval(spawner); }
+      dibujar();
     }
-  }
 
-  if (recogidos.length === secuenciaActual.length && !juegoTerminado && secuenciaActual.length > 0) {
-    secuenciaActual = [];
-    completados++;
-    if (completados === 2) {
-      mensaje.textContent = "🎉 ¡Reto conseguido!";
-      juegoTerminado = true;
-      registrarBtn.style.display = "inline-block";
-      clearInterval(loop);
-      clearInterval(spawner);
-    } else {
-      setTimeout(() => elegirAlgoritmo(), 1000);
-    }
-  }
-
-  if (cesta.y < 40 && !juegoTerminado) {
-    mensaje.textContent = "💀 Has perdido. La cesta ha llegado arriba.";
-    juegoTerminado = true;
-    clearInterval(loop);
-    clearInterval(spawner);
-  }
-
-  dibujar();
+    function mostrarProgreso() {
+  divProgreso.innerHTML = recogidos
+    .map((t, i) => {
+      const orig = secuenciaActual[i];
+      const indent = orig.length - orig.trimStart().length;
+      const content = "&nbsp;".repeat(indent) + t;
+      return `<div class="line"><span class="lineno">${i+1}</span>${content}</div>`;
+    }).join("");
+  ayudaTexto.textContent = ayudaNivel > 0
+    ? `🔎 Próxima instrucción: ${secuenciaActual[recogidos.length]?.trim() || ""}`
+    : "";
 }
 
-function mostrarProgreso() {
-  divProgreso.textContent = recogidos.map((t, i) => {
-    const orig = secuenciaActual[i];
-    const indent = orig.length - orig.trimStart().length;
-    return " ".repeat(indent) + t;
-  }).join("\n");
-  if (ayudaNivel > 0) {
-    const siguiente = secuenciaActual[recogidos.length]?.trim() || "";
-    ayudaTexto.textContent = `🔎 Próxima instrucción: ${siguiente}`;
-  } else {
-    ayudaTexto.textContent = "";
-  }
-}
 
-document.addEventListener("keydown", e => {
-  if (pausado || juegoTerminado) return;
-  if (e.key === "ArrowLeft" && cesta.x > 0) cesta.x -= 20;
-  if (e.key === "ArrowRight" && cesta.x < canvas.width - cesta.width) cesta.x += 20;
-});
+  document.addEventListener("keydown", e => { if (pausado || juegoTerminado) return; if (e.key === "ArrowLeft" && cesta.x > 0) cesta.x -= 20; if (e.key === "ArrowRight" && cesta.x < canvas.width - cesta.width) cesta.x += 20; });
+  pausaBtn.addEventListener("click", () => { pausado = !pausado; pausaBtn.textContent = pausado ? "▶ Reanudar" : "⏸ Pausar"; pauseOverlay.style.display = pausado ? "flex" : "none"; });
+  ayudaBtn.addEventListener("click", () => { ayudaNivel = (ayudaNivel + 1) % 3; ayudaBtn.textContent = ayudaNivel===0?"🎓 Ayuda":ayudaNivel===1?"🎓 Ayuda nivel 1":"🎓 Ayuda nivel 2"; mostrarProgreso(); });
+  registrarBtn.addEventListener("click", () => window.parent.postMessage({ tipo: "retoCompletado", puntos }, "*"));
 
-pausaBtn.addEventListener("click", () => {
-  pausado = !pausado;
-  pausaBtn.textContent = pausado ? "▶ Reanudar" : "⏸ Pausar";
-  pauseOverlay.style.display = pausado ? "flex" : "none";
-});
-
-ayudaBtn.addEventListener("click", () => {
-  ayudaNivel = (ayudaNivel + 1) % 3;
-  ayudaBtn.textContent = ayudaNivel === 0 ? "🎓 Ayuda"
-    : ayudaNivel === 1 ? "🎓 Ayuda nivel 1"
-    : "🎓 Ayuda nivel 2";
-  mostrarProgreso();
-});
-
-registrarBtn.addEventListener("click", () => {
-  window.parent.postMessage({ tipo: "retoCompletado", puntos: puntos }, "*");
-});
-
-
-
-elegirAlgoritmo();
-loop = setInterval(actualizar, 30);
-spawner = setInterval(crearBloque, 2000);
-</script>
+  elegirAlgoritmo();
+  loop = setInterval(actualizar, 30);
+  spawner = setInterval(crearBloque, 2000);
+  </script>
 </body>
 </html>

@@ -1,141 +1,208 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mapa de Retos</title>
+
+  <!-- Fuente robotica -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Tippy.js CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css" />
+  <!-- Popper.js y Tippy.js UMD bundle -->
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.min.js"></script>
+
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      height: 100%;
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      /* Fondo estático + fallback color */
       background: url('imagenes/mapa-retos.png') no-repeat center center fixed;
       background-size: cover;
+      background-color: #001021;
+      font-family: 'Segoe UI', sans-serif;
     }
-
-    #contenedor {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
-    .reto {
-      position: absolute;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background-color: rgba(0, 255, 255, 0.85);
-      color: black;
-      font-weight: bold;
-      text-align: center;
-      line-height: 60px;
-      cursor: pointer;
-      border: 2px solid white;
-      transition: transform 0.3s;
-      z-index: 1;
-    }
-
-    .reto:hover {
-      transform: scale(1.1);
-    }
-
-    .bloqueado {
-      background-color: rgba(128, 128, 128, 0.5);
-      cursor: not-allowed;
-    }
-
-    #saludo {
+    /* Título centrado con fuente robotica */
+    #titulo {
       position: absolute;
       top: 20px;
-      left: 20px;
-      color: white;
-      font-size: 20px;
-      background: rgba(0,0,0,0.6);
-      padding: 10px 20px;
-      border-radius: 8px;
-      z-index: 2;
+      width: 100%;
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
+      color: #0ff;
+      text-shadow: 0 0 10px rgba(0,255,255,0.7);
+      z-index: 4;
     }
-
-    .reto[data-reto="1"] { top: 40%; left: 12%; }
-    .reto[data-reto="2"] { top: 20%; left: 40%; }
-    .reto[data-reto="3"] { top: 60%; left: 38%; }
-    .reto[data-reto="4"] { top: 30%; left: 72%; }
-    .reto[data-reto="5"] { top: 65%; left: 80%; }
-  
-        .superado {
-          background-color: rgba(0, 255, 0, 0.85);
-          cursor: default;
-        }
-        </style>
-        
+    /* Canvas de fondo: código fluido */
+    #fondo-codigo {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    #contenedor {
+      position: relative; width: 100%; height: 100%;
+    }
+    /* Saludo estilo consola */
+    #saludo {
+      position: absolute; top: 80px; left: 20px;
+      background: rgba(10,10,30,0.8);
+      padding: 8px 12px; border-radius: 8px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 1rem; color: #fff;
+      box-shadow: 0 0 10px rgba(0,200,255,0.5);
+      z-index: 3;
+    }
+    #saludo img { width: 32px; height: auto; }
+    /* SVG rutas */
+    .rutas path {
+      stroke: rgba(0,200,255,0.6); stroke-width: 3;
+      stroke-dasharray: 5,5; fill: none;
+      filter: drop-shadow(0 0 5px rgba(0,200,255,0.7));
+    }
+    .rutas { pointer-events: none; position: absolute; top: 0; left: 0; z-index: 1; }
+    /* Marcadores de retos con emojis */
+    .reto {
+      position: absolute; width: 60px; height: 60px;
+      border-radius: 50%; font-weight: bold;
+      text-align: center; line-height: 60px;
+      border: 2px solid rgba(255,255,255,0.9);
+      background-color: rgba(255,255,255,0.7);
+      color: #001021;
+      text-shadow: 0 0 3px rgba(255,255,255,0.8);
+      transition: transform .2s, box-shadow .2s;
+      z-index: 2; cursor: pointer;
+    }
+    .reto.bloqueado {
+      background-color: rgba(0,0,0,0.5);
+      color: #fff;
+      border-color: rgba(255,255,255,0.6);
+    }
+    .reto.desbloqueado:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 15px rgba(0,200,255,0.9);
+    }
+    .reto.superado {
+      background-color: rgba(0,255,100,0.8);
+      color: #001021;
+      cursor: default;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 8px rgba(0,255,100,0.6); }
+      50%    { box-shadow: 0 0 20px rgba(0,255,100,0.9); }
+    }
+    /* Posicionamiento de cada reto en % */
+    .reto[data-reto="1"] { top: 55%; left: 12%; }
+    .reto[data-reto="2"] { top: 30%; left: 42%; }
+    .reto[data-reto="3"] { top: 70%; left: 45%; }
+    .reto[data-reto="4"] { top: 35%; left: 75%; }
+    .reto[data-reto="5"] { top: 78%; left: 85%; }
+  </style>
 </head>
 <body>
-  <div id="contenedor">
-    <div id="saludo">Cargando...</div>
+  <!-- Título principal -->
+  <div id="titulo">MAPA DE RETOS</div>
 
-    <!-- Localizadores de retos -->
-    <div class="reto bloqueado" id="r1" data-reto="1">1</div>
-    <div class="reto bloqueado" id="r2" data-reto="2">2</div>
-    <div class="reto bloqueado" id="r3" data-reto="3">3</div>
-    <div class="reto bloqueado" id="r4" data-reto="4">4</div>
-    <div class="reto bloqueado" id="r5" data-reto="5">5</div>
+  <!-- Fondo animado de "código" -->
+  <canvas id="fondo-codigo"></canvas>
+
+  <div id="contenedor">
+    <!-- Cabecera saludo con avatar de alumno -->
+    <div id="saludo">
+      <img src="imagenes/alumno-programador.png" alt="Avatar Alumno Programador">
+      <span>¡Hola, <strong id="usuario"></strong>! Selecciona tu próximo reto.</span>
+    </div>
+    <!-- SVG rutas conectadas -->
+    <svg class="rutas" width="100%" height="100%">
+      <path d="M12%,55% L42%,30% L45%,70% L75%,35% L85%,78%" />
+    </svg>
+    <!-- Marcadores con emojis y tooltips -->
+    <div class="reto bloqueado" id="r1" data-reto="1"
+         data-descripcion="<strong>Reto 1:</strong> Recoge instrucciones en orden en un juego tipo Tetris.">1</div>
+    <div class="reto bloqueado" id="r2" data-reto="2"
+         data-descripcion="<strong>Reto 2:</strong> Dispara a bloques de pseudocódigo en un juego tipo matamarcianos.">2</div>
+    <div class="reto bloqueado" id="r3" data-reto="3"
+         data-descripcion="<strong>Reto 3:</strong> Adivina el algoritmo oculto al estilo Wordle con pseudocódigo.">3</div>
+    <div class="reto bloqueado" id="r4" data-reto="4"
+         data-descripcion="<strong>Reto 4:</strong> Crea un juego en Scratch con condiciones específicas.">4</div>
+    <div class="reto bloqueado" id="r5" data-reto="5"
+         data-descripcion="<strong>Reto 5:</strong> Diseña un juego avanzado en Scratch con lógica y variables.">5</div>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
-    const usuario = sessionStorage.getItem("usuario");
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+      const usuario = sessionStorage.getItem("usuario");
+      if (!usuario) return window.location.replace("login.html");
+      document.getElementById('usuario').innerText = usuario;
 
-    if (!usuario) {
-      window.location.href = "login.html";
-    }
+      // Inicializar tooltips
+      document.querySelectorAll('.reto').forEach(el => {
+        tippy(el, {
+          content: el.getAttribute('data-descripcion'),
+          allowHTML: true,
+          theme: 'light-border',
+          animation: 'scale-subtle'
+        });
+      });
 
-    document.getElementById("saludo").innerText = "¡Hola, " + usuario + "! Selecciona tu próximo reto.";
-
-    async function cargarProgreso() {
-      try {
-        const res = await fetch(`${API_URL}?action=getProgreso&user=${encodeURIComponent(usuario)}`);
-        const datos = await res.json();
-
-        for (let i = 1; i <= 5; i++) {
-  const reto = document.getElementById("r" + i);
-  const completado = datos["reto" + i] === true;
-  const anteriorCompletado = i === 1 || datos["reto" + (i - 1)] === true;
-
-  const nuevoReto = reto.cloneNode(true);
-  nuevoReto.innerText = i;
-  nuevoReto.id = "r" + i;
-  nuevoReto.setAttribute("data-reto", i);
-
-  if (completado) {
-    nuevoReto.classList.remove("bloqueado");
-    nuevoReto.classList.add("superado");
-    nuevoReto.onclick = null;
-  } else if (anteriorCompletado) {
-    nuevoReto.classList.remove("bloqueado");
-    nuevoReto.classList.remove("superado");
-    nuevoReto.onclick = () => {
-      window.location.href = `reto${i}.html`;
-    };
-    // solo este reto debe ser jugable
-  } else {
-    nuevoReto.classList.add("bloqueado");
-    nuevoReto.onclick = null;
-  }
-
-  reto.parentNode.replaceChild(nuevoReto, reto);
-
-  // detener el bucle después de desbloquear el primero disponible
-  if (!completado && anteriorCompletado) {
-    break;
-  }
-}
-      } catch (err) {
-        alert("Error al cargar el progreso.");
-        console.error(err);
+      // Cargar progreso y asignar emojis
+      async function cargarProgreso() {
+        try {
+          const res = await fetch(`${API_URL}?action=getProgreso&user=${encodeURIComponent(usuario)}`);
+          const datos = await res.json();
+          for (let i = 1; i <= 5; i++) {
+            const el = document.getElementById('r'+i);
+            const comp = datos['reto'+i] === true;
+            const prev = i===1 || datos['reto'+(i-1)]===true;
+            el.classList.toggle('superado', comp);
+            el.classList.toggle('bloqueado', !prev || comp);
+            el.classList.toggle('desbloqueado', prev && !comp);
+            // Emoji según estado
+            if (comp) {
+              el.innerText = i;
+            } else if (prev && !comp) {
+              el.innerText = '🚀'; // reto en curso
+              el.onclick = () => window.location.href = `reto${i}.html`;
+            } else {
+              el.innerText = '🔒'; // bloqueado
+              el.onclick = null;
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error al cargar el progreso.');
+        }
       }
-    }
+      cargarProgreso();
 
-    cargarProgreso();
+      // Animación Matrix
+      const canvas = document.getElementById('fondo-codigo'), ctx = canvas.getContext('2d');
+      let W, H, cols, ypos;
+      function initMatrix() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        cols = Math.floor(W / 20) + 1;
+        ypos = Array(cols).fill(0);
+      }
+      function drawMatrix() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = 'rgba(0,0,20,0.2)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#0F0'; ctx.font = '15px monospace';
+        ypos.forEach((y, ind) => {
+          const text = String.fromCharCode(33 + Math.random() * 94);
+          const x = ind * 20;
+          ctx.fillText(text, x, y);
+          ypos[ind] = y > H ? 0 : y + 20;
+        });
+      }
+      window.addEventListener('resize', initMatrix);
+      initMatrix();
+      setInterval(drawMatrix, 50);
+    });
   </script>
 </body>
 </html>
