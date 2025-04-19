@@ -227,5 +227,59 @@
     }
   });
 </script>
+
+<!-- BOTÓN FLOTANTE DEL CHATBOT -->
+<button id="btnToggleChatbot" title="Ayuda del asistente" style="
+  position: fixed;
+  bottom: 100px;
+  left: 20px;
+  z-index: 1000;
+  background-color: #0ff;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0,255,255,0.8);
+">🧠</button>
+
+<!-- CONTENEDOR OCULTO DEL CHATBOT -->
+<div id="visor-chatbot" style="
+  position: fixed;
+  bottom: 170px;
+  left: 20px;
+  width: 380px;
+  height: 520px;
+  display: none;
+  z-index: 999;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.4);
+">
+  <iframe
+    src="https://www.chatbase.co/chatbot-iframe/XHX5OkwnZ_bdBlmozrLIJ"
+    width="100%"
+    height="100%"
+    style="border: none; border-radius: 12px;"
+    frameborder="0"
+  ></iframe>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnChatbot = document.getElementById('btnToggleChatbot');
+    const visorChatbot = document.getElementById('visor-chatbot');
+
+    if (btnChatbot && visorChatbot) {
+      btnChatbot.addEventListener('click', () => {
+        const visible = visorChatbot.style.display === 'block';
+        visorChatbot.style.display = visible ? 'none' : 'block';
+      });
+    } else {
+      console.warn("Botón o visor del chatbot no encontrados.");
+    }
+  });
+</script>
+
 </body>
 </html>
