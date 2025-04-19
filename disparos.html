@@ -126,14 +126,18 @@
 </head>
 <body>
   <div id="info">
-    Puntos: <span id="puntos">0</span> | Nivel: <span id="nivel">1</span>/2
+    Puntos: <span id="puntos">0</span> |
+    Nivel: <span id="nivel">1</span>/2 |
+    ⏱ Tiempo: <span id="cronometro">0</span>s
   </div>
+  
   <div id="mensaje-nivel">¡Nivel superado!</div>
   <div id="contenedor">
     <div id="panel-izquierdo">
       <h3>Secuencia Objetivo</h3>
       <div id="secuencia"></div>
     </div>
+    
     <div id="juego">
       <div id="jugador"><img src="imagenes/cohete.avif" alt="cohete"></div>
     </div>
@@ -151,8 +155,32 @@
     <!--<button id="registrar">📋 Registrar reto</button>-->
     <button id="cambiarModo">Cambiar modo de aparición</button>
   </div>
+  <!--<button id="botonTest" style="margin-top: 10px; background: darkred; color: white; border: none; padding: 10px; border-radius: 6px;">
+    🔧 Enviar datos de prueba
+  </button>-->
+  
 
   <script>
+
+document.getElementById("botonTest").addEventListener("click", () => {
+  const datosSimulados = {
+    tipo: "retoCompletado",
+    reto: "reto2",
+    puntos: 130,  // Puedes cambiar el valor para probar las insignias
+    porcentajeCriterios: 100,
+    errores: 0,
+    intentos: 2,
+    tiempoTotal: 95,
+    bloquesUsados: 0,
+    bloquesOptimos: 0,
+    vidas: 3,
+    vidasMax: 3,
+    funcionalidadesExtra: false
+  };
+
+  window.parent.postMessage(datosSimulados, "*");
+});
+
     const niveles = [
         ['mover 10 pasos', 'girar a la derecha', 'decir Hola', 'esperar 1 seg', 'decir Adiós'], 
         ['mover 10 pasos', 'girar a la derecha', 'mover 10 pasos', 'girar a la izquierda', 'decir Hola', 'esperar 1 seg', 'decir Adiós', 'girar a la izquierda', 'mover 10 pasos', 'decir Fin']];
@@ -161,6 +189,16 @@
     let nivelActual = 0, progreso = 0, puntos = 0, disparoActivo = false, enPausa = false;
     let instruccionesEjecutar = [];
     let modoVertical = false;
+
+   
+    let tiempoJugando = 0;
+    let intervaloCrono = null;
+    let erroresDisparo = 0;
+    let tiempoInicio = null;
+    let cronometroInterval;
+
+
+
 
     const juego = document.getElementById("juego");
     const jugador = document.getElementById("jugador");
@@ -175,6 +213,30 @@
 
     let jugadorX = 230;
     jugador.style.left = jugadorX + "px";
+
+    enPausa = true;
+    const btnInicio = document.createElement("button");
+    btnInicio.textContent = "🚀 Empezar reto";
+    btnInicio.style.marginTop = "20px";
+    document.body.insertBefore(btnInicio, document.getElementById("contenedor"));
+
+    btnInicio.addEventListener("click", () => {
+      btnInicio.remove();
+      tiempoInicio = Date.now();
+      enPausa = false;
+
+      // Inicia cronómetro visual
+      cronometroInterval = setInterval(() => {
+        if (!enPausa && tiempoInicio !== null) {
+          const transcurrido = Math.floor((Date.now() - tiempoInicio) / 1000);
+          document.getElementById("cronometro").textContent = transcurrido;
+        }
+      }, 1000);
+
+      // Comienza la generación de instrucciones
+      lanzarSiguienteBloque();
+    });
+
 
     function actualizarSecuencia() {
       secuenciaDiv.innerHTML = "";
@@ -259,6 +321,7 @@
       disparo.style.left = (jugadorX + 18) + "px";
       disparo.style.top = "580px";
       juego.appendChild(disparo);
+
       function moverDisparo() {
         let top = parseFloat(disparo.style.top);
         if (top < 0) return disparo.remove(), disparoActivo = false;
@@ -281,7 +344,11 @@
                 if (nivelActual >= niveles.length) registrarBtn.style.display = 'inline-block';
                 else nivelEl.textContent = nivelActual + 1;
               }
-            } else puntos -= 5;
+            } else{
+              puntos -= 5;
+              erroresDisparo++;
+
+            } 
             //mostrarExplosion(dr.left, dr.top);
             const bounds = juego.getBoundingClientRect();
             mostrarExplosion(br.left - bounds.left, br.top - bounds.top);
@@ -311,18 +378,41 @@
       mensajeNivel.style.display = 'none';
       reanudarBtn.style.display = 'none';
       actualizarSecuencia();
+      lanzarSiguienteBloque(); // 🔁 Aquí se reinicia el flujo de bloques tras el nivel
     });
 
     actualizarSecuencia();
-    setInterval(() => {
-      if (!enPausa) {
-        const secuencia = niveles[nivelActual];
-        const pool = [...secuencia];
-        while (pool.length < 6) pool.push(distractores[Math.floor(Math.random() * distractores.length)]);
-        crearBloque(pool[Math.floor(Math.random() * pool.length)]);
+
+
+    let colaInstrucciones = [];
+
+    function lanzarSiguienteBloque() {
+      if (enPausa) return;
+
+      if (colaInstrucciones.length === 0) {
+        const necesarias = niveles[nivelActual].map(i => i.trim());
+        const mezcladas = [...necesarias, ...distractores].sort(() => Math.random() - 0.5);
+        colaInstrucciones = mezcladas;
       }
-    }, 900);
-  
+
+      const texto = colaInstrucciones.shift();
+      crearBloque(texto);
+
+      setTimeout(lanzarSiguienteBloque, 1000);  // ← ajusta la velocidad aquí si quieres
+    }
+
+    lanzarSiguienteBloque(); // 👈 Esto inicia el ciclo
+
+
+      // Iniciar cronómetro
+      cronometroInterval = setInterval(() => {
+        if (!enPausa && tiempoInicio !== null) {
+          const transcurrido = Math.floor((Date.now() - tiempoInicio) / 1000);
+          document.getElementById("cronometro").textContent = transcurrido;
+        }
+       }, 1000);
+
+
     function mostrarExplosion(x, y) {
       const e = document.createElement("div");
       e.className = "explosion";
@@ -332,10 +422,32 @@
       setTimeout(() => e.remove(), 400);
     }
     registrarBtn.addEventListener("click", () => {
-      //window.parent.postMessage({ tipo: "registroReto", reto: "reto2", puntos: puntos }, "*");
-      window.parent.postMessage({ tipo: "retoCompletado", reto: "reto2", puntos: puntos }, "*");
+  const tiempoTotal = Math.floor((Date.now() - tiempoInicio) / 1000);
+  clearInterval(cronometroInterval); // detener
 
-    });    
+  window.parent.postMessage({
+    tipo: "retoCompletado",
+    reto: "reto2",
+    puntos,
+    porcentajeCriterios: 100,
+    errores: erroresDisparo,
+    intentos,
+    tiempoTotal,
+    bloquesUsados: 0,
+    bloquesOptimos: 0,
+    vidas,
+    vidasMax: 3,
+    funcionalidadesExtra: false
+  }, "*");
+});
+
+    reanudarBtn.addEventListener("click", () => {
+  enPausa = false;
+  mensajeNivel.style.display = 'none';
+  reanudarBtn.style.display = 'none';
+  actualizarSecuencia();
+});
+
 </script>
 </body>
 </html>

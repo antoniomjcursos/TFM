@@ -204,5 +204,55 @@
       setInterval(drawMatrix, 50);
     });
   </script>
+<!-- BOTÓN FLOTANTE -->
+<button id="btnToggleRanking" title="Ver ranking y progreso" style="
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  background-color: #0ff;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0,255,255,0.8);
+">📊</button>
+
+<!-- CONTENEDOR DEL VISOR -->
+<div id="visor-ranking" style="
+  position: absolute;
+  bottom: 100px;
+  right: 20px;
+  width: 600px;
+  max-height: 800px;
+  overflow: hidden;
+  border: 2px solid #0ff;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,255,255,0.4);
+  z-index: 9;
+  background-color: rgba(0, 10, 20, 0.95);
+  display: none;
+">
+  <iframe src="ranking.html" width="100%" height="800" style="border: none; border-radius: 10px;"></iframe>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnRanking = document.getElementById('btnToggleRanking');
+    const visor = document.getElementById('visor-ranking');
+
+    if (btnRanking && visor) {
+      btnRanking.addEventListener('click', () => {
+        const visible = visor.style.display === 'block';
+        visor.style.display = visible ? 'none' : 'block';
+      });
+    } else {
+      console.warn("Botón o visor no encontrados en el DOM.");
+    }
+  });
+</script>
+
 </body>
 </html>

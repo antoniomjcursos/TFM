@@ -27,13 +27,39 @@
       max-width: 800px; width: 100%;
     }
     .intento {
-      display: flex; justify-content: center; margin-bottom: 10px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
+
     .bloque {
-      padding: 6px 10px; margin: 0 5px;
-      border-radius: 6px; font-weight: bold;
-      min-width: 160px; text-align: center;
-    }
+  display: inline-block;
+  padding: 8px 12px;
+  margin: 4px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+  background: #eee;
+  border: 2px solid #aaa;
+  max-width: 180px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+  .blocklyText {
+    font-size: 11pt !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .blocklySvg {
+    font-family: sans-serif;
+  }
+
+
     .verde { background: #a0e7a0; }
     .amarillo { background: #fff59d; }
     .gris { background: #ccc; }
@@ -54,8 +80,8 @@
     <div id="progreso">Nivel: <span id="nivel">0</span>/2 | Puntos: <span id="puntos">0</span></div>
     <div id="blocklyDiv"></div>
     <button onclick="comprobarIntento()">Comprobar intento</button>
-    <button id="btnRegistrar">📋 Registrar reto</button>
-    <!--<button id="btnRegistrar" style="display:none;">📋 Registrar reto<</button>-->
+    <!--<button id="btnRegistrar">📋 Registrar reto</button>-->
+    <button id="btnRegistrar" style="display:none;">📋 Registrar reto<</button>
     <div id="intentos"></div>
   </div>
 
@@ -82,6 +108,19 @@
   </xml>
 
   <script>
+
+let erroresTotales = 0;
+let intentosTotales = 0;
+let tiempoInicio = Date.now();
+let tiempoTotal = 0;
+let puntosTotales = 0;
+
+
+let nivelesIntentoUnico = 0;
+let nivelesMax4Intentos = 0;
+
+
+
     const retos = [
       { nombre: "Desayuno sencillo", puntos: 100, descripcion: "Prepara un desayuno básico.", secuencia: ["levantarse_cama", "ir_cocina", "preparar_cafe", "poner_tostadora", "tomar_desayuno"] },
       { nombre: "Salida al trabajo", puntos: 120, descripcion: "Rutina matutina antes de ir al trabajo.", secuencia: ["levantarse_cama", "vestirse", "ir_cocina", "tomar_desayuno", "lavarse_dientes", "salir_casa"] },
@@ -160,6 +199,9 @@
     }
 
     function comprobarIntento() {
+      tiempoTotal = Math.floor((Date.now() - tiempoInicio) / 1000);
+      
+
       const idx = parseInt(document.getElementById("selectorReto").value);
       if (isNaN(idx)) return alert("Selecciona un reto.");
       const reto = retos[idx];
@@ -189,10 +231,22 @@
 
       const esCorrecto = usuario.join() === reto.secuencia.join();
 
+      intentosTotales++;
+      if (!esCorrecto) erroresTotales++;
+
+
       if (esCorrecto) {
         retosUsados[idx] = true;
         retosCompletados++;
         totalPuntos += puntosRestantesPorReto[idx];
+
+        if (intentosPorReto[idx] === 0) {
+          nivelesIntentoUnico++;
+        }
+        if (intentosPorReto[idx] <= 3) {
+          nivelesMax4Intentos++;
+        }
+
 
         document.getElementById("nivel").textContent = retosCompletados;
         document.getElementById("puntos").textContent = totalPuntos;
@@ -228,9 +282,29 @@
     }
 
     const registrarBtn = document.getElementById("btnRegistrar");
+
+
     registrarBtn.addEventListener("click", () => {
-      window.parent.postMessage({ tipo: "retoCompletado", puntos: totalPuntos }, "*");
-    }); 
+  window.parent.postMessage({
+    tipo: "retoCompletado",
+    reto: "reto3",
+    puntos: totalPuntos,
+    errores: erroresTotales,
+    intentos: intentosTotales,
+    tiempoTotal: Math.floor((Date.now() - tiempoInicio) / 1000),
+    bloquesUsados: 0,
+    bloquesOptimos: 0,
+    vidas: 0,
+    vidasMax: 0,
+    funcionalidadesExtra: false,
+    nivelesIntentoUnico,
+    nivelesMax4Intentos
+  }, "*");
+});
+
+
+
+
 
   </script>
 </body>

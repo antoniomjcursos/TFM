@@ -14,7 +14,28 @@
       color: white;
     }
 
+    #introStory {
+      padding: 40px;
+      text-align: center;
+      background-color: rgba(0,0,0,0.7);
+      margin: 60px auto;
+      max-width: 900px;
+      border-radius: 12px;
+    }
+
+    #introStory button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: cyan;
+      color: black;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
     #contenedor {
+      display: none;
       padding: 30px;
       text-align: center;
       background-color: rgba(0,0,0,0.7);
@@ -49,18 +70,61 @@
   </style>
 </head>
 <body>
-  <div id="contenedor">
+
+  <!-- INTRODUCCIÓN -->
+  <div id="introStory">
     <h1>RETO 1: SECUENCIA CRÍTICA</h1>
+  
     <div class="info">
       Usuario: <span id="nombreUsuario">Cargando...</span>
     </div>
-    <div class="info">
-      En el corazón del sistema de inteligencia artificial yace un núcleo aún dormido.<br>
-      Para activarlo, deberás demostrar que dominas la lógica de las máquinas.<br><br>
-      Tu misión consiste en completar dos niveles de entrenamiento que pondrán a prueba tu capacidad para crear y ejecutar algoritmos precisos.<br>
-      La secuencia lo es todo. Cada instrucción cuenta.
+  
+    <div class="info" style="margin-top: 20px;">
+      El núcleo del sistema ha detectado una anomalía en la secuencia de instrucciones...<br><br>
+      Solo un programador con precisión quirúrgica será capaz de restaurar el orden.<br>
+      Recoge las instrucciones correctas, evita las trampas y demuestra tu maestría lógica.<br><br>
+      ¡Completa dos algoritmos para activar el sistema y gana insignias exclusivas por tu destreza!
     </div>
+  
+    <div id="insigniasInfo" style="
+      background-color: rgba(0, 0, 0, 0.8);
+      border: 1px solid cyan;
+      border-radius: 10px;
+      padding: 16px 24px;
+      margin: 30px auto;
+      max-width: 800px;
+      text-align: left;
+      font-size: 16px;
+      line-height: 1.6;
+    ">
+      <h3 style="margin-bottom: 12px; color: cyan; text-align: center;">🏅 Cómo ganar insignias en este reto</h3>
+      <ul style="margin: 0; padding-left: 24px; list-style-type: square;">
+        <li><strong style="color: #fff;">🎯 Puntuación excelente</strong>: supera los 100 puntos totales.</li>
+        <li><strong style="color: #fff;">🧤 Recogedor Experto</strong>: completa ambos algoritmos sin cometer errores.</li>
+        <li><strong style="color: #fff;">⏱ Ojo de Halcón</strong>: termina en menos de 150 segundos.</li>
+        <li><strong style="color: #fff;">🔥 Tenacidad</strong>: lo logras después de 3 o más intentos.</li>
+      </ul>
+    </div>
+  
+    <button id="empezarBtn" style="
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: cyan;
+      color: black;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    ">🚀 Comenzar reto</button>
+  </div>
+  
 
+  <!-- CONTENEDOR DEL JUEGO -->
+  <div id="contenedor">
+    <h1>RETO 1: SECUENCIA CRÍTICA</h1>
+    <div class="info">
+      Usuario: <span id="nombreUsuario2">Cargando...</span>
+    </div>
     <div id="juego">
       <iframe src="tetrix2.html" id="juegoFrame" style="width: 1100px; height: 900px;"></iframe>
     </div>
@@ -75,19 +139,40 @@
     }
 
     document.getElementById("nombreUsuario").innerText = usuario;
+    document.getElementById("nombreUsuario2").innerText = usuario;
+
+    // Mostrar contenedor tras pulsar el botón
+    document.getElementById("empezarBtn").addEventListener("click", () => {
+      document.getElementById("introStory").style.display = "none";
+      document.getElementById("contenedor").style.display = "block";
+    });
 
     window.addEventListener("message", async (event) => {
       if (event.data && event.data.tipo === "retoCompletado") {
-        const puntos = event.data.puntos;
+        const {
+          puntos,
+          porcentajeCriterios,
+          errores,
+          intentos,
+          tiempoTotal,
+          bloquesUsados,
+          bloquesOptimos,
+          vidas,
+          vidasMax,
+          funcionalidadesExtra
+        } = event.data;
 
         alert("¡Reto superado! Has conseguido " + puntos + " puntos.");
 
         try {
-          const motivo = "Reto 1 superado"; // con espacios
-          await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto1`);
-          //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}`);
-          //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=reto1_superado`);
-          await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=${encodeURIComponent(motivo)}`);
+          //const res = await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto1&porcentajeCriterios=${porcentajeCriterios}&errores=${errores}&intentos=${intentos}&tiempoTotal=${tiempoTotal}&bloquesUsados=${bloquesUsados}&bloquesOptimos=${bloquesOptimos}&vidas=${vidas}&vidasMax=${vidasMax}&funcionalidadesExtra=${funcionalidadesExtra ? 1 : 0}`);
+          const res = await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto1&puntos=${puntos}&porcentajeCriterios=${porcentajeCriterios}&errores=${errores}&intentos=${intentos}&tiempoTotal=${tiempoTotal}&bloquesUsados=${bloquesUsados}&bloquesOptimos=${bloquesOptimos}&vidas=${vidas}&vidasMax=${vidasMax}&funcionalidadesExtra=${funcionalidadesExtra ? 1 : 0}`);
+
+          const data = await res.json();
+
+          alert("✅ ¡Reto superado!\n" +
+                "Puntos: " + puntos + "\n" +
+                (data.insignias.length > 0 ? "🏅 Insignias: " + data.insignias.join(", ") : "Sin insignias obtenidas"));
 
           window.location.href = "mapa-retos.html";
         } catch (err) {

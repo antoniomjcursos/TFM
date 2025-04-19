@@ -193,10 +193,13 @@ body {
     Resuelve 2 algoritmos para ganar<br>
     <span id="marcador">🏆 Puntos: 0 | Algoritmos completados: 0/2</span>
   </div>
+
   <div id="botones">
     <button id="pausaBtn">⏸ Pausar</button>
     <button id="ayudaBtn">🎓 Ayuda</button>
     <button id="registrarBtn" style="display:none;">📋 Registrar reto</button>
+    <button id="reiniciarBtn">🔁 Reiniciar intento</button>
+
   </div>
   <div id="contenedor">
     <div class="panel" id="objetivo-container">
@@ -218,6 +221,10 @@ body {
 
   <script>
   // Lógica original sin cambios
+
+ 
+
+
   const canvas = document.getElementById("juego");
   const ctx = canvas.getContext("2d");
   const columns = 5;
@@ -240,12 +247,22 @@ body {
   const pausaBtn = document.getElementById("pausaBtn");
   const ayudaBtn = document.getElementById("ayudaBtn");
   const pauseOverlay = document.getElementById("pauseOverlay");
+  const reiniciarBtn = document.getElementById("reiniciarBtn");
+
 
   let usados = [], algoritmoActual, secuenciaActual = [], recogidos = [], frecuencia = [];
   let completados = 0, puntos = 0;
-  let pausado = false, juegoTerminado = false;
+  let pausado = true, juegoTerminado = false;
+  let intentos = 1;
+  let inicioJuego = Date.now();
   let ayudaNivel = 0;
   let loop, spawner;
+  let cronometroInterval; // 👈 poner al inicio del script
+  cronometroInterval = setInterval(() => {
+  const segundos = Math.floor((Date.now() - inicioJuego) / 1000);
+  marcador.textContent = `🏆 Puntos: ${puntos} | Algoritmos completados: ${completados}/2 | Intentos: ${intentos} | ⏱ ${segundos}s`;
+}, 1000);
+
 
   function elegirAlgoritmo() {
   // 1) Elige un algoritmo nuevo
@@ -333,34 +350,47 @@ function crearBloque() {
     ctx.fillText(line.trim(), x, y);
   }
 
-    function actualizar() {
-      if (pausado || juegoTerminado) return;
-      bloques.forEach(b => b.y += 2);
-      for (let i = bloques.length - 1; i >= 0; i--) {
-        const b = bloques[i], exp = secuenciaActual[recogidos.length]?.trim();
-        if (b.y + 70 >= cesta.y && b.y + 70 <= cesta.y + cesta.height && b.x + 70 > cesta.x && b.x < cesta.x + cesta.width) {
-          if (b.validoInicial && b.texto === exp) { recogidos.push(b.texto); puntos += ayudaNivel === 2 ? 2 : ayudaNivel === 1 ? 5 : 10; mensaje.textContent = "✅ Correcto"; bloques.length = 0; frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5); }
-          else { puntos -= 5; cesta.y -= 20; mensaje.textContent = "❌ Incorrecto"; }
-          bloques.splice(i, 1); actualizarMarcador(); mostrarProgreso();
-        } else if (b.y > canvas.height && b.validoInicial && b.texto === exp) { puntos -= 5; cesta.y -= 20; mensaje.textContent = `❌ Perdiste la instrucción esperada: "${exp}"`; bloques.splice(i, 1); actualizarMarcador(); }
-      }
-      if (recogidos.length === secuenciaActual.length && !juegoTerminado && secuenciaActual.length > 0) { 
-        secuenciaActual = []; completados++; 
-        actualizarMarcador();  // ← añadimos esto para que muestre "2/2"
-        if (completados === 2) { 
-          mensaje.textContent = "🎉 ¡Reto conseguido!"; 
-          // Mostramos overlay con éxito
-          pauseOverlay.textContent = '🎉 ¡Reto conseguido!';
-          pauseOverlay.style.display = 'flex';
-
-          juegoTerminado = true; 
-          registrarBtn.style.display = "inline-block"; 
-          clearInterval(loop); 
-          clearInterval(spawner); } 
-          else setTimeout(() => elegirAlgoritmo(), 1000); }
-      if (cesta.y < 40 && !juegoTerminado) { mensaje.textContent = "💀 Has perdido. La cesta ha llegado arriba."; juegoTerminado = true; clearInterval(loop); clearInterval(spawner); }
-      dibujar();
+  function actualizar() {
+    if (pausado || juegoTerminado) return;
+    bloques.forEach(b => b.y += 2);
+    for (let i = bloques.length - 1; i >= 0; i--) {
+      const b = bloques[i], exp = secuenciaActual[recogidos.length]?.trim();
+      if (b.y + 70 >= cesta.y && b.y + 70 <= cesta.y + cesta.height && b.x + 70 > cesta.x && b.x < cesta.x + cesta.width) {
+        if (b.validoInicial && b.texto === exp) { recogidos.push(b.texto); puntos += ayudaNivel === 2 ? 2 : ayudaNivel === 1 ? 5 : 10; mensaje.textContent = "✅ Correcto"; bloques.length = 0; frecuencia = [...secuenciaActual.map(l => l.trim())].sort(() => Math.random() - 0.5); }
+        else { puntos -= 5; cesta.y -= 20; mensaje.textContent = "❌ Incorrecto"; }
+        bloques.splice(i, 1); actualizarMarcador(); mostrarProgreso();
+      } else if (b.y > canvas.height && b.validoInicial && b.texto === exp) { puntos -= 5; cesta.y -= 20; mensaje.textContent = `❌ Perdiste la instrucción esperada: "${exp}"`; bloques.splice(i, 1); actualizarMarcador(); }
     }
+    if (recogidos.length === secuenciaActual.length && !juegoTerminado && secuenciaActual.length > 0) {
+      secuenciaActual = []; completados++;
+      actualizarMarcador();  // ← añadimos esto para que muestre "2/2"
+      if (completados === 2) {
+        mensaje.textContent = "🎉 ¡Reto conseguido!";
+        // Mostramos overlay con éxito
+        pauseOverlay.textContent = '🎉 ¡Reto conseguido!';
+        pauseOverlay.style.display = 'flex';
+
+        juegoTerminado = true;
+        clearInterval(cronometroInterval); // 👈 AÑADIDO
+
+        registrarBtn.style.display = "inline-block";
+        clearInterval(loop);
+        clearInterval(spawner);
+      }
+      else {
+        bloques.splice(0, bloques.length); // elimina todos los bloques
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // limpia el canvas
+        divProgreso.innerHTML = "";
+        setTimeout(() => {
+          elegirAlgoritmo();
+          dibujar(); // asegura que se muestre todo correctamente
+        }, 1000);
+      }
+
+    }
+    if (cesta.y < 40 && !juegoTerminado) { mensaje.textContent = "💀 Has perdido. La cesta ha llegado arriba."; juegoTerminado = true; clearInterval(loop); clearInterval(spawner); }
+    dibujar();
+  }
 
     function mostrarProgreso() {
   divProgreso.innerHTML = recogidos
@@ -379,11 +409,66 @@ function crearBloque() {
   document.addEventListener("keydown", e => { if (pausado || juegoTerminado) return; if (e.key === "ArrowLeft" && cesta.x > 0) cesta.x -= 20; if (e.key === "ArrowRight" && cesta.x < canvas.width - cesta.width) cesta.x += 20; });
   pausaBtn.addEventListener("click", () => { pausado = !pausado; pausaBtn.textContent = pausado ? "▶ Reanudar" : "⏸ Pausar"; pauseOverlay.style.display = pausado ? "flex" : "none"; });
   ayudaBtn.addEventListener("click", () => { ayudaNivel = (ayudaNivel + 1) % 3; ayudaBtn.textContent = ayudaNivel===0?"🎓 Ayuda":ayudaNivel===1?"🎓 Ayuda nivel 1":"🎓 Ayuda nivel 2"; mostrarProgreso(); });
-  registrarBtn.addEventListener("click", () => window.parent.postMessage({ tipo: "retoCompletado", puntos }, "*"));
+  //registrarBtn.addEventListener("click", () => window.parent.postMessage({ tipo: "retoCompletado", puntos }, "*"));
 
+  registrarBtn.addEventListener("click", () => {
+  const tiempoTotal = Math.floor((Date.now() - inicioJuego) / 1000);
+  const errores = Math.max(0, (algoritmos.length * 8 * 10) - puntos) / 10;
+  const bloquesUsados = recogidos.length;
+  const bloquesOptimos = algoritmos.reduce((a, b) => a + b.secuencia.length, 0);
+  const vidas = cesta.y >= 470 ? 3 : cesta.y >= 430 ? 2 : 1;
+
+  window.parent.postMessage({
+    tipo: "retoCompletado",
+    puntos,
+    porcentajeCriterios: 100,
+    errores,
+    intentos,
+    tiempoTotal,
+    bloquesUsados,
+    bloquesOptimos,
+    vidas,
+    vidasMax: 3,
+    funcionalidadesExtra: false
+  }, "*");
+});
+
+
+  reiniciarBtn.addEventListener("click", () => {
+  intentos++;
+  inicioJuego = Date.now();
+  clearInterval(loop);
+  clearInterval(spawner);
+  clearInterval(cronometroInterval);
+  usados = [];
+  completados = 0;
+  puntos = 0;
+  juegoTerminado = false;
+  ayudaNivel = 0;
+  ayudaBtn.textContent = "🎓 Ayuda";
+  registrarBtn.style.display = "none";
+  mensaje.textContent = "";
+  ayudaTexto.textContent = "";
+  pauseOverlay.style.display = "none";
   elegirAlgoritmo();
   loop = setInterval(actualizar, 30);
   spawner = setInterval(crearBloque, 2000);
+  
+});
+
+  elegirAlgoritmo();
+  cronometroInterval = setInterval(() => {
+  const segundos = Math.floor((Date.now() - inicioJuego) / 1000);
+  marcador.textContent = `🏆 Puntos: ${puntos} | Algoritmos completados: ${completados}/2 | Intentos: ${intentos} | ⏱ ${segundos}s`;
+}, 1000);
+
+
+  loop = setInterval(actualizar, 30);
+  spawner = setInterval(crearBloque, 2000);
+
+  pauseOverlay.style.display = "flex";
+  pausaBtn.textContent = "▶ Reanudar";
+
   </script>
 </body>
 </html>

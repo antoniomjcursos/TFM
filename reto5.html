@@ -1,37 +1,42 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Validador de Reto - Saltar Obstáculos</title>
+  <title>Validador de Reto 5</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 2em;
-      max-width: 960px;
-      margin: auto;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
       background-image: url('imagenes/fondo-st.png');
       background-size: cover;
       background-attachment: fixed;
       background-position: center;
-      color: white;
+      color: #e0e0e0;
       text-shadow: 1px 1px 3px #000;
     }
-    h1, h2 { color: #fff; }
+    .contenido {
+      max-width: 1200px;
+      margin: auto;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 2em;
+      box-shadow: 0 0 20px #000;
+    }
+    h1, h2 { color: #ffffff; }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 1em;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.75);
     }
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid #555;
       padding: 8px;
       text-align: left;
     }
-    th { background-color: #444; }
-    .superado { background-color: #28a74588; }
-    .no-superado { background-color: #dc354688; }
+    th { background-color: #222; }
+    .superado { background-color: rgba(40, 167, 69, 0.5); }
+    .no-superado { background-color: rgba(220, 53, 69, 0.5); }
     button, input[type=file] {
       margin-top: 1em;
       padding: 10px;
@@ -40,103 +45,187 @@
       border: none;
       border-radius: 5px;
     }
-    #superarBtn:disabled {
-      background-color: #666;
-      cursor: not-allowed;
-    }
     a {
       color: #00ffff;
       font-weight: bold;
+    }
+    #resultado {
+      margin-top: 2em;
+    }
+    #procesando {
+      background: #111;
+      padding: 1em;
+      border-radius: 5px;
+      margin-top: 1em;
+      display: none;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎯 Reto: Saltar Obstáculos</h1>
+<!-- STORYTELLING -->
+<div id="intro" style="text-align: center; padding: 80px; background-color: rgba(0,0,0,0.85); color: #fff;">
+  <h1>🎮 Reto 4: ¡Demuestra tu creatividad!</h1>
+  <p>Has llegado al reto final. Es momento de poner en práctica todo lo aprendido.</p>
+  <p>Diseña un proyecto original en Scratch que cumpla con los requisitos establecidos.</p>
 
-  <h2>📝 Descripción del reto:</h2>
-  <p>Crea un personaje que avance continuamente y salte con la barra espaciadora para evitar obstáculos.</p>
-
-  <ul>
-    
-      <li>✅ Usa “cuando se presione la bandera verde”</li>
-      <li>✅ Usa “mover 10 pasos” continuamente</li>
-      <li>✅ Usa “cuando se presione tecla espacio” para saltar</li>
-      <li>✅ Usa “cambiar y” o “fijar y” para hacer el salto</li>
-      <li>✅ Usa “tocar obstáculo” para detectar colisión</li>
-    
+  <h3>🏅 Insignias que puedes ganar:</h3>
+  <ul style="list-style: none; font-size: 18px; padding: 0;">
+    <li>🏆 <strong>Perfección</strong>: 100 puntos (10/10)</li>
+    <li>💡 <strong>Detallista</strong>: más de 70 puntos</li>
+    <li>📘 <strong>Aprendiz Scratch</strong>: mínimo 50 puntos</li>
+    <li>🛠️ <strong>Funcionalidad Extra</strong>: has añadido ideas propias</li>
+    <li>🧼 <strong>Código Impecable</strong>: superado en el primer intento</li>
   </ul>
 
-  <h2>📚 ¿Cómo se evalúa este reto?</h2>
-  <p>El reto se evalúa con una <strong>rúbrica de 5 criterios</strong>. Por cada criterio cumplido, obtendrás <strong>20 puntos</strong>.</p>
-  <ul>
-    <li>✅ 5 criterios → 100 puntos → ¡Reto superado!</li>
-    <li>🟡 3-4 criterios → 60-80 puntos → A mejorar</li>
-    <li>🔴 Menos de 3 criterios → Sigue practicando</li>
-  </ul>
+  <button onclick="mostrarValidador()" style="margin-top: 30px; padding: 14px 28px; font-size: 18px; border: none; border-radius: 6px; background: #ffc107; color: #000; font-weight: bold; cursor: pointer;">🚀 Continuar</button>
+</div>
 
-  <p><strong>Sube tu archivo .sb3 para comprobar si has superado el reto:</strong></p>
-  <input type="file" id="fileInput" accept=".sb3" />
-  <button onclick="validar()">✅ Validar Reto</button>
+<!-- VALIDADOR -->
+<div class="contenido" id="validador" style="display: none;">
+  <h1 id="titulo">🎯 Reto</h1>
+  <p id="nombreUsuario" style="font-weight:bold;"></p>
+
+  <div style="display: flex; gap: 2em; flex-wrap: wrap;">
+    <div style="flex: 1 1 350px;">
+      <h2>🧩 Instrucciones que debes cumplir:</h2>
+      <table>
+        <tr><th>Bloque</th><th>Descripción</th></tr>
+        <tbody id="instrucciones"></tbody>
+      </table>
+    </div>
+
+    <div style="flex: 1 1 300px;">
+      <h2>📝 Descripción del reto:</h2>
+      <p id="descripcion">Cargando descripción...</p>
+      <div id="enlacesAdicionales" style="margin-top: 1em;"></div>
+
+      <h2>📚 ¿Cómo se evalúa este reto?</h2>
+      <p>El reto se evalúa con una <strong>rúbrica de 10 criterios</strong>. Por cada criterio cumplido, obtendrás <strong>10 puntos</strong>.</p>
+      <ul>
+        <li>✅ 10 criterios → 100 puntos → ¡Reto superado!</li>
+        <li>🟡 6-9 criterios → 60-90 puntos → A mejorar</li>
+        <li>🔴 Menos de 6 criterios → Sigue practicando</li>
+      </ul>
+
+      <input type="file" id="fileInput" accept=".sb3" />
+      <button onclick="validar()">✅ Validar Reto</button>
+      <div id="procesando">⏳ Procesando archivo, por favor espera...</div>
+      <button id="btnSuperar" style="display:none;">🎉 Superar Reto</button>
+
+      <h2>🔧 Editores recomendados:</h2>
+      <ul>
+        <li><a href="https://scratch.mit.edu/projects/editor/" target="_blank">Editor oficial de Scratch</a></li>
+        <li><a href="https://turbowarp.org/editor" target="_blank">Editor TurboWarp (más rápido)</a></li>
+      </ul>
+    </div>
+  </div>
 
   <div id="resultado"></div>
-  <button id="superarBtn" disabled>🎉 Reto superado</button>
+</div>
 
-  <h2>🔧 Editores recomendados:</h2>
-  <ul>
-    <li><a href="https://scratch.mit.edu/projects/editor/" target="_blank">Editor oficial de Scratch</a></li>
-    <li><a href="https://turbowarp.org/editor" target="_blank">Editor TurboWarp (más rápido)</a></li>
-  </ul>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="code/evaluador.js"></script>
+<script>
+  let archivoSB3 = null;
+  let resultadoUltimo = null;
+  let intentosReto4 = 0;
+  const usuario = sessionStorage.getItem("usuario");
+  if (!usuario) window.location.href = "login.html";
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script>
-    let archivoSB3 = null;
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+  document.getElementById("nombreUsuario").innerText = "👤 Usuario: " + usuario;
 
-    document.getElementById('fileInput').addEventListener('change', function(event) {
-      archivoSB3 = event.target.files[0];
-    });
+  function mostrarValidador() {
+    document.getElementById("intro").style.display = "none";
+    document.getElementById("validador").style.display = "block";
+  }
 
-    async function validar() {
-      if (!archivoSB3) {
-        alert("Por favor, selecciona un archivo .sb3 primero.");
-        return;
-      }
+  const retoId = new URLSearchParams(window.location.search).get("reto") || "reto_manzanas";
 
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    archivoSB3 = e.target.files[0];
+  });
+
+  window.onload = () => {
+    const datos = window.retosEvaluables[retoId];
+    document.getElementById("titulo").textContent = datos.titulo;
+    document.getElementById("descripcion").textContent = datos.instrucciones;
+
+    let filas = "";
+    for (let [codigo, descripcion, imagen] of datos.criterios) {
+      filas += `<tr><td style="text-align:center;"><img src="${imagen}" width="80"></td><td>${descripcion}</td></tr>`;
+    }
+    document.getElementById("instrucciones").innerHTML = filas;
+
+    const enlaces = [];
+    if (datos.ayuda) enlaces.push(`<a href="${datos.ayuda}" target="_blank">📘 Ver ayuda</a>`);
+    if (datos.demo) enlaces.push(`<a href="${datos.demo}" target="_blank">🎮 Ver demo</a>`);
+    document.getElementById("enlacesAdicionales").innerHTML = enlaces.join(" | ");
+  };
+
+  async function validar() {
+    if (!archivoSB3) return alert("Selecciona un archivo .sb3 primero.");
+
+    intentosReto4++;
+    document.getElementById("procesando").style.display = "block";
+
+    try {
       const zip = await JSZip.loadAsync(archivoSB3);
       const jsonText = await zip.file("project.json").async("string");
+      const json = JSON.parse(jsonText);
 
-      const respuesta = await fetch(scriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          usuario: "alumno_demo",
-          reto: "saltar_obstaculos",
-          json: JSON.parse(jsonText)
-        })
-      });
+      resultadoUltimo = window.evaluarReto(json, retoId);
+      mostrarRubrica(resultadoUltimo);
 
-      const data = await respuesta.json();
-      mostrarRubrica(data);
-    }
-
-    function mostrarRubrica(data) {
-      const contenedor = document.getElementById("resultado");
-      const supera = data.puntuacion_total >= 100;
-
-      let html = `<h2>📊 Rúbrica del reto:</h2>`;
-      html += `<table><tr><th>Criterio</th><th>Resultado</th></tr>`;
-      for (let item of data.rubrica) {
-        const clase = item.puntuacion === "✔️" ? 'superado' : 'no-superado';
-        html += `<tr class="${clase}"><td>${item.criterio}</td><td>${item.resultado}</td></tr>`;
+      if (resultadoUltimo.puntuacion >= 50) {
+        document.getElementById("btnSuperar").style.display = "inline-block";
       }
-      html += `</table><p><strong>Puntuación total:</strong> ${data.puntuacion_total}/100</p>`;
-      html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
-
-      contenedor.innerHTML = html;
-      document.getElementById("superarBtn").disabled = !supera;
+    } catch (e) {
+      alert("Error al procesar el archivo.");
+      console.error(e);
     }
-  </script>
 
+    document.getElementById("procesando").style.display = "none";
+  }
+
+  function mostrarRubrica(data) {
+    const contenedor = document.getElementById("resultado");
+    let html = `<h2>📊 Rúbrica del reto:</h2>`;
+    html += `<p><strong>Puntuación:</strong> ${data.puntuacion}/100</p>`;
+    html += `<p><strong>Mensaje:</strong> ${data.mensaje}</p>`;
+    html += `<table><tr><th>Criterio</th><th>Resultado</th></tr>`;
+    for (let item of data.rubrica) {
+      html += `<tr class="${item.resultado === '✅' ? 'superado' : 'no-superado'}"><td>${item.criterio}</td><td>${item.resultado}</td></tr>`;
+    }
+    html += `</table>`;
+    contenedor.innerHTML = html;
+  }
+
+  document.getElementById("btnSuperar").addEventListener("click", async () => {
+    if (!resultadoUltimo || resultadoUltimo.puntuacion < 50) return alert("Debes obtener al menos 50 puntos para superar el reto.");
+
+    const datos = {
+      tipo: "retoCompletado",
+      reto: "reto4",
+      puntos: resultadoUltimo.puntuacion,
+      funcionalidadesExtra: resultadoUltimo.funcionalidadesExtra || false,
+      intentos: intentosReto4
+    };
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+
+    try {
+      const res = await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto4&puntos=${datos.puntos}&funcionalidadesExtra=${datos.funcionalidadesExtra ? 1 : 0}&intentos=${datos.intentos}`);
+      const result = await res.json();
+
+      alert("✅ ¡Reto superado!\nPuntos: " + datos.puntos + "\n" + (result.insignias?.length ? "🏅 Insignias: " + result.insignias.join(", ") : "Sin insignias obtenidas"));
+      window.location.href = "mapa-retos.html";
+    } catch (err) {
+      alert("❌ Error al registrar el reto.");
+      console.error(err);
+    }
+  });
+</script>
 </body>
 </html>

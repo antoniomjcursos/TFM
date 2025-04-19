@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Reto 2 – Tiro al Bloque</title>
+  <title>Reto 2 – Defensa Algorítmica</title>
   <style>
     html, body {
       margin: 0;
@@ -14,81 +14,145 @@
       color: white;
     }
 
-    #contenedor {
+    #introStory {
       padding: 30px;
       text-align: center;
-      background-color: rgba(0,0,0,0.7);
+      background-color: rgba(0,0,0,0.75);
+      margin: 40px auto;
+      max-width: 1000px;
+      border-radius: 12px;
+    }
+
+    #introStory h1 {
+      font-size: 32px;
+      color: cyan;
+      margin-bottom: 10px;
+    }
+
+    .info {
+      font-size: 18px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+
+    #insigniasInfo {
+      margin: 20px auto;
+      background: #111;
+      border: 1px solid #555;
+      padding: 15px;
+      border-radius: 10px;
+      max-width: 800px;
+      color: #ddd;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    #insigniasInfo h3 {
+      color: #0ff;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    #insigniasInfo ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+
+    #juegoContenedor {
+      display: none;
+      padding: 30px;
+      text-align: center;
+      background-color: rgba(0,0,0,0.75);
       margin: 40px auto;
       max-width: 1200px;
       border-radius: 12px;
     }
 
-    h1 {
-      font-size: 32px;
-      color: cyan;
-    }
-
-    .info {
-      margin-top: 10px;
-      font-size: 18px;
-      line-height: 1.5;
-    }
-
-    #juego {
-      margin-top: 30px;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
     iframe {
-      border: none;
       width: 100%;
-      height: 700px;
-      border-radius: 8px;
+      height: 800px;
+      border: none;
+      border-radius: 10px;
+    }
+
+    #empezarBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 6px;
+      background: #00c8c8;
+      color: black;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="contenedor">
-    <h1>RETO 2: TIRO AL BLOQUE</h1>
+  <div id="introStory">
+    <h1>RETO 2: DEFENSA ALGORÍTMICA</h1>
     <div class="info">
       Usuario: <span id="nombreUsuario">Cargando...</span>
     </div>
-    <div class="info">
-      En el corazón del sistema de inteligencia artificial yace un núcleo aún dormido.<br>
-      Para activarlo, deberás demostrar que dominas la lógica de las máquinas.<br><br>
-      Tu misión consiste en completar dos niveles de entrenamiento que pondrán a prueba tu capacidad para crear y ejecutar algoritmos precisos.<br>
-      La secuencia lo es todo. Cada instrucción cuenta.
+    <div class="info" style="margin-top: 20px;">
+      Un enjambre de instrucciones erróneas se aproxima al núcleo del sistema.<br>
+      Tu misión: programar con precisión y eliminar únicamente las instrucciones correctas.<br><br>
+      ¡Evita errores, mantén tus vidas y demuestra tu puntería lógica!
     </div>
+    <div id="insigniasInfo">
+      <h3>🏅 Cómo ganar insignias en este reto</h3>
+      <ul>
+        <li><strong>🎯 Francotirador</strong>: sin errores en los disparos.</li>
+        <li><strong>🛡️ Guardián del Código</strong>: completas ambos niveles sin perder vidas.</li>
+        <li><strong>🔥 Tenacidad</strong>: lo logras tras 3 o más intentos.</li>
+        <li><strong>⚡ Rápido y Preciso</strong>: terminas en menos de 120 segundos.</li>
+        <li><strong>🏆 Puntuación Élite</strong>: alcanzas más de 120 puntos.</li>
+      </ul>
+    </div>
+    <button id="empezarBtn">🚀 Comenzar reto</button>
+  </div>
 
-    <div id="juego">
-      <iframe src="disparos.html" id="juegoFrame" style="width: 1100px; height: 900px;"></iframe>
-    </div>
+  <div id="juegoContenedor">
+    <iframe src="disparos.html" id="juegoFrame"></iframe>
   </div>
 
   <script>
     const usuario = sessionStorage.getItem("usuario");
-    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
+    document.getElementById("nombreUsuario").innerText = usuario || "Desconocido";
 
     if (!usuario) {
       window.location.href = "login.html";
     }
 
-    document.getElementById("nombreUsuario").innerText = usuario;
+    document.getElementById("empezarBtn").addEventListener("click", () => {
+      document.getElementById("introStory").style.display = "none";
+      document.getElementById("juegoContenedor").style.display = "block";
+    });
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbwiGOusxc6cKKou330rov28KtDmu3j-LIh2kFb4LyexL-JxkMbzrFSpunDe4NmB7Ba7NQ/exec";
 
     window.addEventListener("message", async (event) => {
       if (event.data && event.data.tipo === "retoCompletado") {
-        const puntos = event.data.puntos;
+        const {
+          puntos,
+          porcentajeCriterios,
+          errores,
+          intentos,
+          tiempoTotal,
+          bloquesUsados,
+          bloquesOptimos,
+          vidas,
+          vidasMax,
+          funcionalidadesExtra
+        } = event.data;
 
         alert("¡Reto superado! Has conseguido " + puntos + " puntos.");
 
         try {
-          const motivo = "Reto 2 superado"; // con espacios
-          await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto2`);
-          //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}`);
-          //await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=reto1_superado`);
-          await fetch(`${API_URL}?action=sumarPuntos&user=${encodeURIComponent(usuario)}&puntos=${puntos}&motivo=${encodeURIComponent(motivo)}`);
-
+          const res = await fetch(`${API_URL}?action=setProgreso&user=${encodeURIComponent(usuario)}&reto=reto2&porcentajeCriterios=${porcentajeCriterios}&puntos=${puntos}&errores=${errores}&intentos=${intentos}&tiempoTotal=${tiempoTotal}&bloquesUsados=${bloquesUsados}&bloquesOptimos=${bloquesOptimos}&vidas=${vidas}&vidasMax=${vidasMax}&funcionalidadesExtra=${funcionalidadesExtra ? 1 : 0}`);
+          const data = await res.json();
+          alert("✅ ¡Reto superado!\n" +
+                "Puntos: " + puntos + "\n" +
+                (data.insignias.length > 0 ? "🏅 Insignias: " + data.insignias.join(", ") : "Sin insignias obtenidas"));
           window.location.href = "mapa-retos.html";
         } catch (err) {
           alert("Error al guardar el progreso.");
