@@ -184,7 +184,9 @@ document.getElementById("botonTest").addEventListener("click", () => {
     const niveles = [
         ['mover 10 pasos', 'girar a la derecha', 'decir Hola', 'esperar 1 seg', 'decir Adiós'], 
         ['mover 10 pasos', 'girar a la derecha', 'mover 10 pasos', 'girar a la izquierda', 'decir Hola', 'esperar 1 seg', 'decir Adiós', 'girar a la izquierda', 'mover 10 pasos', 'decir Fin']];
-    const distractores = ['tocar tambor', 'mostrar variable', 'enviar mensaje', 'detener todo', 'repetir 10 veces', 'crear clon'];
+ 
+
+        const distractores = ['tocar tambor', 'mostrar variable', 'enviar mensaje', 'detener todo', 'repetir 10 veces', 'crear clon'];
 
     let nivelActual = 0, progreso = 0, puntos = 0, disparoActivo = false, enPausa = false;
     let instruccionesEjecutar = [];
@@ -196,6 +198,9 @@ document.getElementById("botonTest").addEventListener("click", () => {
     let erroresDisparo = 0;
     let tiempoInicio = null;
     let cronometroInterval;
+    let intentos = 1;  // ✅ Inicializa con 1 intento por defecto
+    let vidas = 1;           // ✅ Añadir esto
+    let vidasMax = 3;        // ✅ Añadir esto    
 
 
 
@@ -237,8 +242,9 @@ document.getElementById("botonTest").addEventListener("click", () => {
       lanzarSiguienteBloque();
     });
 
-
     function actualizarSecuencia() {
+      if (!niveles[nivelActual]) return; // ✅ Evita error cuando no hay más niveles
+
       secuenciaDiv.innerHTML = "";
       listaEscenario.innerHTML = "";
       niveles[nivelActual].forEach((bloque, i) => {
